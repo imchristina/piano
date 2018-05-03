@@ -9,7 +9,7 @@
 -- Settings
 SAMPLE_RATE = 48000
 BUFFER_SIZE = 48000
-SIN_TEST = true
+SIN_TEST = false
 RAND_TEST = false
 
 -- Constants
@@ -30,6 +30,14 @@ function love.load()
 		elseif RAND_TEST then
 			l_value = math.random(-10, 10)
 			r_value = math.random(-10, 10)
+		else -- hammer model goes here, for now just a square wave sort of thing
+			if i > 50 and i < 100 then
+				l_value = 10
+				r_value = 10
+			else
+				l_value = 0
+				r_value = 0
+			end
 		end
 		table.insert(dwgs.l, l_value)
 		table.insert(dwgs.r, r_value)
@@ -37,7 +45,6 @@ function love.load()
 		table.insert(signal_graph, 0)
 		i = i + 1
 	end
-	--dwgs.l[50] = 50
 
 	--audio_streaming = love.audio.newQueueableSource(SAMPLE_RATE, 16, 1)
 	audio_buffer = love.sound.newSoundData(BUFFER_SIZE, SAMPLE_RATE, 16, 1)
