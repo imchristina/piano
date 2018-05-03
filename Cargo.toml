@@ -4,3 +4,4 @@ version = "0.1.0"
 authors = ["nutcase84 <nutcase84@protonmail.com>"]
 
 [dependencies]
+portaudio = "0.7.0"
