@@ -3,8 +3,10 @@
 
 --THINGS MISSING
 --Loss in string (unsure if neccesary)
---Frequency of sound (string tension)
 --A crude hammer model would be nice
+
+--THINGS THAT I DIDN'T MEAN TO DO
+--Delay line size dictates frequency. Cool
 
 -- Settings
 SAMPLE_RATE = 48000
@@ -13,7 +15,7 @@ SIN_TEST = false
 RAND_TEST = false
 
 -- Constants
-DELAY_LINE_SIZE = 600
+DELAY_LINE_SIZE = 500 --number of points in string, turns out that it also acts as the length or tension of the string, as the sound gets higher frequency as this number gets lower
 TRAVEL_SPEED = 100000
 REFLECTION_COEFFICIENT = 0.92
 
@@ -107,5 +109,11 @@ function love.keypressed(key)
 		love.load()
 	elseif key == "p" then
 		cur_sample = cur_sample - 1
+	elseif key == "=" or key == "+" then -- increase/decrease string length/frequency
+		DELAY_LINE_SIZE = DELAY_LINE_SIZE + 10
+		love.load()
+	elseif key == "-" then
+		DELAY_LINE_SIZE = DELAY_LINE_SIZE - 10
+		love.load()
 	end
 end
