@@ -15,9 +15,9 @@ SIN_TEST = false
 RAND_TEST = false
 
 -- Constants
-DELAY_LINE_SIZE = 500 --number of points in string, turns out that it also acts as the length or tension of the string, as the sound gets higher frequency as this number gets lower
-TRAVEL_SPEED = 100000
-REFLECTION_COEFFICIENT = 0.92
+DELAY_LINE_SIZE = 500 -- number of points in string, turns out that it also acts as the length or tension of the string, as the sound gets higher frequency as this number gets lower
+TRAVEL_SPEED = 200000 -- number of points shifted per second, higher numbers increase CPU usage but make sampling complete faster
+REFLECTION_COEFFICIENT = 0.93
 
 function love.load()
 	dwgs = {l = {}, r = {}}
@@ -33,7 +33,7 @@ function love.load()
 			l_value = math.random(-10, 10)
 			r_value = math.random(-10, 10)
 		else -- hammer model goes here, for now just a square wave sort of thing
-			if i > 50 and i < 100 then
+			if i > 50 and i < 75 then
 				l_value = 10
 				r_value = 10
 			else
@@ -84,12 +84,12 @@ function love.update(dt)
 		i = i + 1
 	end
 
-	table.insert(signal_graph, dwgs.r[1]+dwgs.l[DELAY_LINE_SIZE])
-	table.remove(signal_graph, 1)
-
 	if cur_sample == BUFFER_SIZE then
 		love.audio.play(love.audio.newSource(audio_buffer))
 		cur_sample = cur_sample + 1
+	elseif cur_sample < BUFFER_SIZE then
+		table.insert(signal_graph, dwgs.r[1]+dwgs.l[DELAY_LINE_SIZE])
+		table.remove(signal_graph, 1)
 	end
 end
 
@@ -99,7 +99,11 @@ function love.draw()
 		love.graphics.points(50+i, dwgs.r[i]+50)
 		love.graphics.points(50+i, dwgs.l[i]+150)
 		love.graphics.points(50+i, string_sum[i]+250)
-		love.graphics.points(50+i, signal_graph[i]+350)
+		if cur_sample < BUFFER_SIZE then
+			love.graphics.points(50+i, signal_graph[i]+350)
+		else
+			love.graphics.points(50+(i), (audio_buffer:getSample((BUFFER_SIZE/DELAY_LINE_SIZE-1)*i))*50+350)
+		end
 		i = i + 1
 	end
 end
