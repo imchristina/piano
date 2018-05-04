@@ -5,3 +5,4 @@ authors = ["nutcase84 <nutcase84@protonmail.com>"]
 
 [dependencies]
 portaudio = "0.7.0"
+portmidi = "0.2.4"
