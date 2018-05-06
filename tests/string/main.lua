@@ -1,12 +1,8 @@
---CURRENT ISSUES
---Samplerate dictates sound frequency (also decay)
-
 --THINGS MISSING
---Loss in string (unsure if neccesary)
---A crude hammer model would be nice
-
---THINGS THAT I DIDN'T MEAN TO DO
---Delay line size dictates frequency. Cool
+--Loss in string (scattering junction)
+--A crude hammer model
+--Accurate frequency control
+--Frequency accuracy at different sample rates
 
 -- Settings
 SAMPLE_RATE = 48000
@@ -56,8 +52,8 @@ end
 function update_string(l, r, dt)
 	local points_to_move = TRAVEL_SPEED*dt
 	while points_to_move > 0 do
-		table.insert(r, 1, l[1]*REFLECTION_COEFFICIENT)
-		table.insert(l, r[DELAY_LINE_SIZE]*REFLECTION_COEFFICIENT)
+		table.insert(r, 1, -(l[1]*REFLECTION_COEFFICIENT))
+		table.insert(l, -(r[DELAY_LINE_SIZE]*REFLECTION_COEFFICIENT))
 		table.remove(r, table.maxn(r))
 		table.remove(l, 1);
 		points_to_move = points_to_move - 1
@@ -118,6 +114,12 @@ function love.keypressed(key)
 		love.load()
 	elseif key == "-" then
 		DELAY_LINE_SIZE = DELAY_LINE_SIZE - 10
+		love.load()
+	elseif key == "s" then -- slowmo
+		TRAVEL_SPEED = 60
+		love.load()
+	elseif key == "f" then
+		TRAVEL_SPEED = 200000
 		love.load()
 	end
 end
