@@ -3,6 +3,7 @@ SAMPLE_RATE = 48000
 BUFFER_SIZE = 48000
 SIN_TEST = false
 RAND_TEST = false
+NO_STRIKE = true
 MANUAL_CONTROL = false
 BLAST_PROCESSING = false
 
@@ -10,14 +11,12 @@ BLAST_PROCESSING = false
 DELAY_LINE_SIZE = 250 -- number of points in string, turns out that it also acts as the length or tension of the string, as the sound gets higher frequency as this number gets lower
 TRAVEL_SPEED = 2000
 STRING_TENSION = 0.005
-DISPERSION_COEFFICIENT = 0.5 -- energy transfered into surrounding points
+DISPERSION_COEFFICIENT = 0.3 -- energy transfered into surrounding points
 TERMINATION_POINTS = 3
 TERMINATION_FORCE = 1/TERMINATION_POINTS
 
 function love.load()
 	string = {}
-	pointer = 1
-	direction = true
 	signal_graph = {}
 	local i = 0
 	while i < DELAY_LINE_SIZE do
@@ -26,6 +25,7 @@ function love.load()
 			value = math.sin(i/10)*10
 		elseif RAND_TEST then
 			value = math.random(-3, 3)
+		elseif NO_STRIKE then	
 		else -- hammer model goes here, for now just a square wave sort of thing
 			if i > 50 and i < 75 then
 				value = math.random(9,10)
@@ -68,10 +68,9 @@ function update_string(string, dt)
 		string[i].y = string[i].y*(TERMINATION_FORCE*i)
 		i = i + 1
 	end
-
-	string[1].y = 0 --rigid terminations
+	string[1].y = 0 -- make certain that root termination point is absolute unit 
 	string[DELAY_LINE_SIZE].y = 0
-	string[1].v = 0 --rigid terminations
+	string[1].v = 0
 	string[DELAY_LINE_SIZE].v = 0
 
 	if cur_sample < BUFFER_SIZE then
@@ -103,15 +102,23 @@ function love.update(dt)
 		table.insert(signal_graph, string[10].y)
 		table.remove(signal_graph, 1)
 	end
+
+	if love.keyboard.isDown("h") then
+		local i = 10
+		while i > 0 do
+			string[i+30].y = -25
+			i = i - 1
+		end
+	end
 end
 
 function love.draw()
 	local i = 1
 	while i <= DELAY_LINE_SIZE and i <= love.graphics.getWidth() do
-		love.graphics.points(50+i, string[i].y+50)
-		love.graphics.points(50+i, string[i].v+150)
-		love.graphics.points(50+i, signal_graph[i]+250)
-		love.graphics.points(50+(i), (audio_buffer:getSample((BUFFER_SIZE/DELAY_LINE_SIZE-1)*i))*50+350)
+		love.graphics.points(50+i, string[i].y+150)
+		love.graphics.points(50+i, string[i].v+250)
+		love.graphics.points(50+i, signal_graph[i]+350)
+		love.graphics.points(50+(i), (audio_buffer:getSample((BUFFER_SIZE/DELAY_LINE_SIZE-1)*i))*50+450)
 		i = i + 1
 	end
 end
@@ -121,7 +128,7 @@ function love.keypressed(key)
 		love.load()
 	elseif key == "p" then
 		cur_sample = cur_sample - 1
-	elseif key == "=" or key == "+" then -- increase/decrease string length/frequency
+	elseif key == "=" or key == "+" then -- increase/decrease string tension
 		STRING_TENSION = STRING_TENSION + 0.001
 		print(STRING_TENSION)
 		love.load()
