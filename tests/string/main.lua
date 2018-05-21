@@ -1,6 +1,6 @@
 --THINGS MISSING
---Loss in string (scattering junction)
---A crude hammer model
+--Wave impedance
+--Crude hammer model
 --Accurate frequency control
 --Frequency accuracy at different sample rates
 
@@ -13,7 +13,10 @@ RAND_TEST = false
 -- Constants
 DELAY_LINE_SIZE = 500 -- number of points in string, turns out that it also acts as the length or tension of the string, as the sound gets higher frequency as this number gets lower
 TRAVEL_SPEED = 200000 -- number of points shifted per second, higher numbers increase CPU usage but make sampling complete faster
-REFLECTION_COEFFICIENT = 0.93
+REFLECTION_COEFFICIENT = 0.93 -- energy reflected at termination point
+STRING_TENSION = 1.63737e+10
+MASS_DENSITY = 0
+YOUNGS_MODULUS = 200e9
 
 function love.load()
 	dwgs = {l = {}, r = {}}
