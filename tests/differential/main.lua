@@ -1,17 +1,17 @@
 -- Settings
 SAMPLE_RATE = 48000
-BUFFER_SIZE = 48000
+BUFFER_SIZE = 480000
 SIN_TEST = false
 RAND_TEST = false
-NO_STRIKE = true
+NO_STRIKE = false
 MANUAL_CONTROL = false
-BLAST_PROCESSING = false
+BLAST_PROCESSING = true
 
 -- Constants
-DELAY_LINE_SIZE = 250 -- number of points in string, turns out that it also acts as the length or tension of the string, as the sound gets higher frequency as this number gets lower
+DELAY_LINE_SIZE = 500 -- number of points in string, turns out that it also acts as the length or tension of the string, as the sound gets higher frequency as this number gets lower
 TRAVEL_SPEED = 2000
 STRING_TENSION = 0.005
-DISPERSION_COEFFICIENT = 0.3 -- energy transfered into surrounding points
+DISPERSION_COEFFICIENT = 0.9 -- energy transfered into surrounding points
 TERMINATION_POINTS = 3
 TERMINATION_FORCE = 1/TERMINATION_POINTS
 
@@ -28,7 +28,7 @@ function love.load()
 		elseif NO_STRIKE then	
 		else -- hammer model goes here, for now just a square wave sort of thing
 			if i > 50 and i < 75 then
-				value = math.random(9,10)
+				value = math.random(4,5)
 			else
 				value = 0
 			end
@@ -46,16 +46,18 @@ end
 function update_string(string, dt)
 	local i = 1
 	while i < DELAY_LINE_SIZE do -- disperse energy right
-		string[i+1].y = string[i+1].y+(string[i].y*DISPERSION_COEFFICIENT) -- apply velocity from current point onto next point
-		string[i].y = string[i].y-(string[i].y*DISPERSION_COEFFICIENT) -- remove applied velocity from point
+		local energy = (string[i].y-string[i+1].y)*DISPERSION_COEFFICIENT
+		string[i+1].v = string[i+1].v + energy
+		string[i].v = string[i].v - energy
 		i = i + 1
 	end
-	local i = DELAY_LINE_SIZE
+	--[[local i = DELAY_LINE_SIZE
 	while i > 1 do -- disperse energy left
-		string[i-1].y = string[i-1].y+string[i].y*DISPERSION_COEFFICIENT
-		string[i].y = string[i].y-string[i].y*DISPERSION_COEFFICIENT
+		local energy = (string[i].y-string[i-1].y)*DISPERSION_COEFFICIENT -- I'm not sure that doing calculations in both directions is neccesarry anymore with the new energy dispersion method
+		string[i-1].v = string[i-1].v + energy
+		string[i].v = string[i].v - energy
 		i = i - 1
-	end
+	end]]
 
 	for i,point in ipairs(string) do
 		point.y = point.y + point.v -- apply velocity onto the string as movement
@@ -63,18 +65,19 @@ function update_string(string, dt)
 	end
 
 	local i = 1
-	while i <= TERMINATION_POINTS do --rigid terminations left
+	while i <= TERMINATION_POINTS do --rigid terminations
 		string[(DELAY_LINE_SIZE+i-i*2)+1].y = string[(DELAY_LINE_SIZE+i-i*2)+1].y*(TERMINATION_FORCE*i)
 		string[i].y = string[i].y*(TERMINATION_FORCE*i)
 		i = i + 1
 	end
+	local sample = string[1].y
 	string[1].y = 0 -- make certain that root termination point is absolute unit 
 	string[DELAY_LINE_SIZE].y = 0
 	string[1].v = 0
 	string[DELAY_LINE_SIZE].v = 0
 
 	if cur_sample < BUFFER_SIZE then
-		local sample = string[10].y/20
+		--local sample = string[10].y/20
 		if sample > 1 or sample < -1 then
 			print("audio clipped")
 		end
@@ -103,7 +106,7 @@ function love.update(dt)
 		table.remove(signal_graph, 1)
 	end
 
-	if love.keyboard.isDown("h") then
+	if love.keyboard.isDown("h") and NO_STRIKE then
 		local i = 10
 		while i > 0 do
 			string[i+30].y = -25
@@ -131,11 +134,9 @@ function love.keypressed(key)
 	elseif key == "=" or key == "+" then -- increase/decrease string tension
 		STRING_TENSION = STRING_TENSION + 0.001
 		print(STRING_TENSION)
-		love.load()
 	elseif key == "-" then
 		STRING_TENSION = STRING_TENSION - 0.001
 		print(STRING_TENSION)
-		love.load()
 	elseif key == "s" then -- slowmo
 		TRAVEL_SPEED = 60
 		love.load()
