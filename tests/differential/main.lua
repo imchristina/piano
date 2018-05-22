@@ -6,13 +6,14 @@ RAND_TEST = false
 NO_STRIKE = false
 MANUAL_CONTROL = false
 BLAST_PROCESSING = true
+SAMPLE_POINT = true -- sample string position if false, velocity if true
 
 -- Constants
 DELAY_LINE_SIZE = 500 -- number of points in string, turns out that it also acts as the length or tension of the string, as the sound gets higher frequency as this number gets lower
 TRAVEL_SPEED = 2000
-STRING_TENSION = 0.005
-DISPERSION_COEFFICIENT = 0.9 -- energy transfered into surrounding points
-TERMINATION_POINTS = 3
+--STRING_TENSION = 0--0.005
+DISPERSION_COEFFICIENT = 0.1 -- energy transfered into surrounding points
+TERMINATION_POINTS = 5
 TERMINATION_FORCE = 1/TERMINATION_POINTS
 
 function love.load()
@@ -61,7 +62,7 @@ function update_string(string, dt)
 
 	for i,point in ipairs(string) do
 		point.y = point.y + point.v -- apply velocity onto the string as movement
-		point.v = point.v+(-point.y*STRING_TENSION) --set velocity from current position and tension of string
+		--point.v = point.v+(-point.y*STRING_TENSION) --set velocity from current position and tension of string
 	end
 
 	local i = 1
@@ -71,18 +72,24 @@ function update_string(string, dt)
 		i = i + 1
 	end
 	local sample = string[1].y
+	if SAMPLE_POINT then
+		sample = string[1].v/5
+	end
 	string[1].y = 0 -- make certain that root termination point is absolute unit 
 	string[DELAY_LINE_SIZE].y = 0
 	string[1].v = 0
 	string[DELAY_LINE_SIZE].v = 0
 
-	if cur_sample < BUFFER_SIZE then
+	if cur_sample < BUFFER_SIZE and not sample_now then
 		--local sample = string[10].y/20
 		if sample > 1 or sample < -1 then
 			print("audio clipped")
 		end
 		audio_buffer:setSample(cur_sample, sample)
 		cur_sample = cur_sample + 1
+		sample_now = true
+	else
+		sample_now = false
 	end
 	return string
 end
@@ -102,7 +109,7 @@ function love.update(dt)
 		love.audio.play(love.audio.newSource(audio_buffer))
 		cur_sample = cur_sample + 1
 	elseif cur_sample < BUFFER_SIZE then
-		table.insert(signal_graph, string[10].y)
+		table.insert(signal_graph, audio_buffer:getSample(cur_sample-1)*25)
 		table.remove(signal_graph, 1)
 	end
 
@@ -132,11 +139,19 @@ function love.keypressed(key)
 	elseif key == "p" then
 		cur_sample = cur_sample - 1
 	elseif key == "=" or key == "+" then -- increase/decrease string tension
-		STRING_TENSION = STRING_TENSION + 0.001
-		print(STRING_TENSION)
+		DISPERSION_COEFFICIENT = DISPERSION_COEFFICIENT + 0.1
+		print(DISPERSION_COEFFICIENT)
+		love.load()
 	elseif key == "-" then
-		STRING_TENSION = STRING_TENSION - 0.001
-		print(STRING_TENSION)
+		DISPERSION_COEFFICIENT = DISPERSION_COEFFICIENT - 0.1
+		print(DISPERSION_COEFFICIENT)
+		love.load()
+	elseif key == "right" then
+		DELAY_LINE_SIZE = DELAY_LINE_SIZE + 50
+		love.load()
+	elseif key == "left" then
+		DELAY_LINE_SIZE = DELAY_LINE_SIZE - 50
+		love.load()
 	elseif key == "s" then -- slowmo
 		TRAVEL_SPEED = 60
 		love.load()
