@@ -1,6 +1,6 @@
 -- Settings
-SAMPLE_RATE = 48000
-BUFFER_SIZE = 480000
+SAMPLE_RATE = 44100
+BUFFER_SIZE = 441000
 SIN_TEST = false
 RAND_TEST = false
 NO_STRIKE = false
@@ -11,9 +11,9 @@ SAMPLE_POINT = true -- sample string position if false, velocity if true
 -- Constants
 DELAY_LINE_SIZE = 500 -- number of points in string, turns out that it also acts as the length or tension of the string, as the sound gets higher frequency as this number gets lower
 TRAVEL_SPEED = 2000
---STRING_TENSION = 0--0.005
-DISPERSION_COEFFICIENT = 0.1 -- energy transfered into surrounding points
-TERMINATION_POINTS = 5
+DISPERSION_COEFFICIENT = 1 -- energy transfered into surrounding points
+STRING_RESISTANCE = 1 -- loss in string between dispersion points
+TERMINATION_POINTS = 9
 TERMINATION_FORCE = 1/TERMINATION_POINTS
 
 function love.load()
@@ -23,7 +23,7 @@ function love.load()
 	while i < DELAY_LINE_SIZE do
 		local value = 0
 		if SIN_TEST then
-			value = math.sin(i/10)*10
+			value = math.sin(i/10)*5
 		elseif RAND_TEST then
 			value = math.random(-3, 3)
 		elseif NO_STRIKE then	
@@ -48,21 +48,13 @@ function update_string(string, dt)
 	local i = 1
 	while i < DELAY_LINE_SIZE do -- disperse energy right
 		local energy = (string[i].y-string[i+1].y)*DISPERSION_COEFFICIENT
-		string[i+1].v = string[i+1].v + energy
+		string[i+1].v = (string[i+1].v + energy) * STRING_RESISTANCE
 		string[i].v = string[i].v - energy
 		i = i + 1
 	end
-	--[[local i = DELAY_LINE_SIZE
-	while i > 1 do -- disperse energy left
-		local energy = (string[i].y-string[i-1].y)*DISPERSION_COEFFICIENT -- I'm not sure that doing calculations in both directions is neccesarry anymore with the new energy dispersion method
-		string[i-1].v = string[i-1].v + energy
-		string[i].v = string[i].v - energy
-		i = i - 1
-	end]]
 
 	for i,point in ipairs(string) do
 		point.y = point.y + point.v -- apply velocity onto the string as movement
-		--point.v = point.v+(-point.y*STRING_TENSION) --set velocity from current position and tension of string
 	end
 
 	local i = 1
@@ -108,7 +100,7 @@ function love.update(dt)
 	if cur_sample == BUFFER_SIZE then
 		love.audio.play(love.audio.newSource(audio_buffer))
 		cur_sample = cur_sample + 1
-	elseif cur_sample < BUFFER_SIZE then
+	elseif cur_sample < BUFFER_SIZE and cur_sample > 0 then
 		table.insert(signal_graph, audio_buffer:getSample(cur_sample-1)*25)
 		table.remove(signal_graph, 1)
 	end
@@ -116,7 +108,7 @@ function love.update(dt)
 	if love.keyboard.isDown("h") and NO_STRIKE then
 		local i = 10
 		while i > 0 do
-			string[i+30].y = -25
+			string[i+30].v = string[i+30].v - 1
 			i = i - 1
 		end
 	end
@@ -153,11 +145,9 @@ function love.keypressed(key)
 		DELAY_LINE_SIZE = DELAY_LINE_SIZE - 50
 		love.load()
 	elseif key == "s" then -- slowmo
-		TRAVEL_SPEED = 60
-		love.load()
+		BLAST_PROCESSING = false
 	elseif key == "f" then
-		TRAVEL_SPEED = 200000
-		love.load()
+		BLAST_PROCESSING = true
 	elseif key == "space" then
 		string = update_string(string, dt)
 	end
