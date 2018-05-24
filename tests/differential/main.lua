@@ -2,7 +2,7 @@
 SAMPLE_RATE = 44100
 BUFFER_SIZE = 441000
 SIN_TEST = false
-RAND_TEST = false
+RAND_TEST = true
 NO_STRIKE = false
 MANUAL_CONTROL = false
 BLAST_PROCESSING = true
@@ -13,7 +13,7 @@ DELAY_LINE_SIZE = 500 -- number of points in string, turns out that it also acts
 TRAVEL_SPEED = 2000
 DISPERSION_COEFFICIENT = 1 -- energy transfered into surrounding points
 STRING_RESISTANCE = 1 -- loss in string between dispersion points
-TERMINATION_POINTS = 9
+TERMINATION_POINTS = 3
 TERMINATION_FORCE = 1/TERMINATION_POINTS
 
 function love.load()

@@ -1,4 +1,4 @@
-pub struct string {
+pub struct String {
 	length: usize,
 	dispersion: f32,
 	loss: f32,
@@ -8,12 +8,13 @@ pub struct string {
 	v: Vec<f32>
 }
 
-pub fn new(length: usize, dispersion: f32, loss: f32, termination_points: usize) -> string {
+pub fn new(length: usize, dispersion: f32, loss: f32, termination_points: usize) -> String {
 	let y: Vec<f32> = vec![0_f32; length];
-	let v: Vec<f32> = vec![0_f32; length];
+	let mut v: Vec<f32> = vec![0_f32; length];
+	v[50] = -10_f32;
 	let termination_force = 1_f32/(termination_points as f32);
-	string {
-		length,
+	String {
+		length: length-1,
 		dispersion,
 		loss,
 		termination_points,
@@ -23,8 +24,8 @@ pub fn new(length: usize, dispersion: f32, loss: f32, termination_points: usize)
 	}
 }
 
-pub fn update(s: &mut string) -> (f32, f32) {
-	for i in 0..s.length { // calculate forces
+pub fn update(s: &mut String) -> (f32, f32) {
+	for i in 0..s.length-1 { // calculate forces
 		let energy = (s.y[i]-s.y[i+1])*s.dispersion;
 		s.v[i+1] = (s.v[i+1] + energy) * s.loss;
 		s.v[i] = s.v[i] - energy;
