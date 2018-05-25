@@ -11,7 +11,7 @@ pub struct String {
 pub fn new(length: usize, dispersion: f32, loss: f32, termination_points: usize) -> String {
 	let y: Vec<f32> = vec![0_f32; length];
 	let mut v: Vec<f32> = vec![0_f32; length];
-	v[50] = -10_f32;
+	v[10] = -10_f32;
 	let termination_force = 1_f32/(termination_points as f32);
 	String {
 		length: length-1,

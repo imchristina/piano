@@ -1,3 +1,5 @@
+const POINTS: usize = 200;
+
 #[macro_use]
 extern crate vst;
 use vst::plugin::{Info, Plugin};
@@ -6,15 +8,14 @@ use vst::event::Event;
 use vst::api::Events;
 mod string;
 
-//#[derive(Default)]
 struct Piano {
-	string: string::String
+	string: string::String,
 }
 
 impl Default for Piano {
 	fn default() -> Piano {
 		Piano {
-			string: string::new(500, 1_f32, 1_f32, 3)
+			string: string::new(POINTS, 1_f32, 1_f32, 3)
 		}
 	}
 }
@@ -37,7 +38,7 @@ impl Plugin for Piano {
 			match event {
 				Event::Midi(ev) => {
 					//midi stuff
-					self.string = string::new(500, 1_f32, 1_f32, 3);
+					self.string = string::new(POINTS, 1_f32, 1_f32, 3);
 				}, _ => ()
 			}
 		}
