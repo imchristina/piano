@@ -2,7 +2,7 @@
 SAMPLE_RATE = 44100
 BUFFER_SIZE = 441000
 SIN_TEST = false
-RAND_TEST = true
+RAND_TEST = false
 NO_STRIKE = false
 MANUAL_CONTROL = false
 BLAST_PROCESSING = true
@@ -28,8 +28,8 @@ function love.load()
 			value = math.random(-3, 3)
 		elseif NO_STRIKE then	
 		else -- hammer model goes here, for now just a square wave sort of thing
-			if i > 50 and i < 75 then
-				value = math.random(4,5)
+			if i > 10 and i < 15 then
+				value = 10--math.random(-10, -10)
 			else
 				value = 0
 			end
@@ -72,7 +72,7 @@ function update_string(string, dt)
 	string[1].v = 0
 	string[DELAY_LINE_SIZE].v = 0
 
-	if cur_sample < BUFFER_SIZE and not sample_now then
+	if cur_sample < BUFFER_SIZE and true then--not sample_now then
 		--local sample = string[10].y/20
 		if sample > 1 or sample < -1 then
 			print("audio clipped")
