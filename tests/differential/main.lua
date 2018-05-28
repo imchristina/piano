@@ -29,7 +29,7 @@ function love.load()
 		elseif NO_STRIKE then	
 		else -- hammer model goes here, for now just a square wave sort of thing
 			if i > 10 and i < 15 then
-				value = 10--math.random(-10, -10)
+				value = -1--math.random(-10, -10)
 			else
 				value = 0
 			end
@@ -59,13 +59,13 @@ function update_string(string, dt)
 
 	local i = 1
 	while i <= TERMINATION_POINTS do --rigid terminations
-		string[(DELAY_LINE_SIZE+i-i*2)+1].y = string[(DELAY_LINE_SIZE+i-i*2)+1].y*(TERMINATION_FORCE*i)
+		--string[(DELAY_LINE_SIZE+i-i*2)+1].y = string[(DELAY_LINE_SIZE+i-i*2)+1].y*(TERMINATION_FORCE*i)
 		string[i].y = string[i].y*(TERMINATION_FORCE*i)
 		i = i + 1
 	end
 	local sample = string[1].y
 	if SAMPLE_POINT then
-		sample = string[1].v/5
+		sample = string[1].v
 	end
 	string[1].y = 0 -- make certain that root termination point is absolute unit 
 	string[DELAY_LINE_SIZE].y = 0

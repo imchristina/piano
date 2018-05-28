@@ -1,23 +1,17 @@
 pub struct String {
-	length: usize,
-	dispersion: f32,
-	loss: f32,
-	termination_points: usize,
-	termination_force: f32,
-	y: Vec<f32>,
-	v: Vec<f32>
+	pub length: usize, // number of points in string
+	pub dispersion: f32, // coefficient of energy transfered into surrounding points, does not introduce loss
+	pub loss: f32,
+	pub termination_points: usize,
+	pub termination_force: f32,
+	pub y: Vec<f32>,
+	pub v: Vec<f32>
 }
 
 pub fn new(length: usize, dispersion: f32, loss: f32, termination_points: usize) -> String {
 	let y: Vec<f32> = vec![0_f32; length];
-	let mut v: Vec<f32> = vec![0_f32; length];
-	v[10] = -1_f32;
-	v[11] = -1_f32;
-	v[12] = -1_f32;
-	v[13] = -1_f32;
-	v[14] = -1_f32;
-	v[15] = -1_f32;
-	let termination_force = 1.0_f32/(termination_points as f32);
+	let v: Vec<f32> = vec![0_f32; length];
+	let termination_force = 1.0_f32/termination_points as f32;
 	String {
 		length: length-1, // make length zero-indexed
 		dispersion,
@@ -35,13 +29,12 @@ pub fn update(s: &mut String) -> (f32, f32) {
 		s.v[i+1] = (s.v[i+1] + energy) * s.loss;
 		s.v[i] -= energy;
 	}
-	for i in 0..s.length+1 { // apply forces
+	for i in 0..s.length { // apply forces
 		s.y[i] = s.y[i] + s.v[i]; // might be better to do loss here
 	}
 	for i in 0..s.termination_points { // soft terminations
-		s.y[(s.length+i-i*2)] = s.y[(s.length+i-i*2)]*(s.termination_force*i as f32);
-		s.y[i] *= (s.termination_force*(i as f32));
-		//s.y[(s.length-s.termination_points)+i] /= s.termination_force*(i as f32);
+		s.y[i] *= s.termination_force*(i as f32); // left
+		s.y[(s.length-s.termination_points)+i] *= 1_f32-(s.termination_force*i as f32); // right
 	}
 	let force_left = s.v[0];
 	let force_right = s.v[s.length];
@@ -77,5 +70,6 @@ mod tests {
 			}
 		}
 		assert_eq!(maxn < 1_f32, true); // make sure string doesn't explode
+		assert_eq!(maxn > -1_f32, true);
 	}
 }
