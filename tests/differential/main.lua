@@ -59,7 +59,7 @@ function update_string(string, dt)
 
 	local i = 1
 	while i <= TERMINATION_POINTS do --rigid terminations
-		--string[(DELAY_LINE_SIZE+i-i*2)+1].y = string[(DELAY_LINE_SIZE+i-i*2)+1].y*(TERMINATION_FORCE*i)
+		string[(DELAY_LINE_SIZE+i-i*2)+1].y = string[(DELAY_LINE_SIZE+i-i*2)+1].y*(TERMINATION_FORCE*i)
 		string[i].y = string[i].y*(TERMINATION_FORCE*i)
 		i = i + 1
 	end

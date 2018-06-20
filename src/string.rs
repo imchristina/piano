@@ -11,7 +11,7 @@ pub struct String {
 pub fn new(length: usize, dispersion: f32, loss: f32, termination_points: usize) -> String {
 	let y: Vec<f32> = vec![0_f32; length];
 	let v: Vec<f32> = vec![0_f32; length];
-	let termination_force = 1.0_f32/termination_points as f32;
+	let termination_force = 0.5_f32/termination_points as f32;
 	String {
 		length: length-1, // make length zero-indexed
 		dispersion,
@@ -69,7 +69,7 @@ mod tests {
 				maxn = value;
 			}
 		}
-		assert_eq!(maxn < 1_f32, true); // make sure string doesn't explode
+		assert_eq!(maxn < 1_f32, true); // make sure string doesn't explode, doesn't seem to work tho
 		assert_eq!(maxn > -1_f32, true);
 	}
 }

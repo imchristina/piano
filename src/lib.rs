@@ -1,7 +1,8 @@
-const POINTS: usize = 100; // defaults
+const POINTS: usize = 200; // defaults
 const DISPERSION: f32 = 1.0_f32;
 const LOSS: f32 = 1.0_f32;
 const TERMINATION_POINTS: usize = 2;
+const SUBSAMPLING: usize = 5;
 
 #[macro_use]
 
@@ -13,33 +14,25 @@ use vst::api::Events;
 mod string;
 mod hammer;
 use hammer::hammer as hammer;
+mod event;
 
 struct Piano {
-	string: string::String,
-	//strings: Vec<string::String>,
-	points: usize,
-	dispersion: f32,
-	loss: f32,
-	termination_points: usize,
-	time: usize,
+	notes: Vec<event::note>,
 }
 
 impl Default for Piano {
 	fn default() -> Piano {
 		Piano {
-			string: string::new(POINTS, DISPERSION, LOSS, TERMINATION_POINTS),
-			points: POINTS,
-			dispersion: DISPERSION,
-			loss: LOSS,
-			termination_points: TERMINATION_POINTS,
-			time: 0,
+			notes: Vec::new(),
 		}
 	}
 }
 
 impl Plugin for Piano {
 	fn init(&mut self) {
-		//let mut self.string = string::new(500, 1_f32, 1_f32, 3);
+		for i in 0..128 {
+			self.notes.push(event::new(POINTS, (i as f32/127_f32), LOSS, TERMINATION_POINTS, SUBSAMPLING)); // 2_f32.powf(0.13*(127-i) as f32) as usize + 50
+		}
 	}
 	fn get_info(&self) -> Info {
 		Info {
@@ -52,7 +45,7 @@ impl Plugin for Piano {
 			..Default::default()
 		}
 	}
-	fn get_parameter(&self, index: i32) -> f32 {
+	/*fn get_parameter(&self, index: i32) -> f32 {
 		match index {
 			0 => (self.points/1000) as f32,
 			1 => self.dispersion,
@@ -61,8 +54,8 @@ impl Plugin for Piano {
 			4 => 0_f32,
 			_ => 0.0,
 		}
-	}
-	fn set_parameter(&mut self, index: i32, value: f32) {
+	}*/
+	/*fn set_parameter(&mut self, index: i32, value: f32) {
 		match index {
 			0 => self.points = (value*1000_f32) as usize,
 			1 => self.dispersion = value,
@@ -73,7 +66,7 @@ impl Plugin for Piano {
 				},
 			_ => (),
 		}
-	}
+	}*/
 	fn get_parameter_name(&self, index: i32) -> String {
 		match index {
 			0 => "points".to_string(),
@@ -84,7 +77,7 @@ impl Plugin for Piano {
 			_ => "".to_string(),
 		}
 	}
-	fn get_parameter_text(&self, index: i32) -> String {
+	/*fn get_parameter_text(&self, index: i32) -> String {
 		match index {
 			0 => format!("{}", self.points),
 			1 => format!("{}", self.dispersion),
@@ -92,7 +85,7 @@ impl Plugin for Piano {
 			3 => format!("{}", self.termination_points),
 			_ => "".to_string(),
 		}
-	}
+	}*/
 	fn get_parameter_label(&self, index: i32) -> String {
 		match index {
 			0 => "".to_string(),
@@ -107,10 +100,12 @@ impl Plugin for Piano {
 			match event {
 				Event::Midi(ev) => {
 					match ev.data[0] {
-						128 => (), // note off
-						144 => {
-							//self.string = string::new(self.points, self.dispersion, self.loss, self.termination_points); // note on
-							self.time = 0;
+						128 => { // note off
+							self.notes[ev.data[1] as usize].active = false;
+						},
+						144 => { // note on
+							self.notes[ev.data[1] as usize].active = true;
+							self.notes[ev.data[1] as usize].time = 0;
 						},
 						_ => (),
 					}
@@ -123,10 +118,8 @@ impl Plugin for Piano {
 		let (_, output_buffer) = buffer.split();
 		for output_channel in output_buffer.into_iter() {
 			for output_sample in output_channel {
-				hammer(&mut self.string, 1_f32, 5, 2_f32, 10, self.time);
-				let (left, right) = string::update(&mut self.string);
+				let (right, left) = event::update(&mut self.notes);
 				*output_sample = (left/2_f32)+(right/2_f32);
-				self.time += 1;
 			}
 		}
 	}
