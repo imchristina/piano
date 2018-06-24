@@ -15,6 +15,7 @@ struct Piano {
 	sample_rate: usize,
 	length: usize,
 	last_note: u8,
+	sustain: bool,
 }
 
 impl Default for Piano {
@@ -24,6 +25,7 @@ impl Default for Piano {
 			sample_rate: 44100,
 			length: 0,
 			last_note: 0,
+			sustain: false,
 		}
 	}
 }
@@ -31,7 +33,7 @@ impl Default for Piano {
 impl Plugin for Piano {
 	fn init(&mut self) {
 		for i in 0..128 {
-			self.notes.push(tuning::note(i, 0_f32, self.sample_rate)); // (i as f32/127_f32)
+			self.notes.push(tuning::note(i, self.sample_rate));
 		}
 	}
 	fn get_info(&self) -> Info {
@@ -110,14 +112,27 @@ impl Plugin for Piano {
 				Event::Midi(ev) => {
 					match ev.data[0] {
 						128 => { // note off
-							self.notes[ev.data[1] as usize].active = false;
+							self.notes[ev.data[1] as usize].released = true;
 						},
 						144 => { // note on
 							self.notes[ev.data[1] as usize].active = true;
+							self.notes[ev.data[1] as usize].damper = false;
 							self.notes[ev.data[1] as usize].time = 0_f32;
 							self.notes[ev.data[1] as usize].velocity = ev.data[2] as f32 / 12_f32;
 							self.last_note = ev.data[1];
 							self.length = self.notes[ev.data[1] as usize].string.length;
+						},
+						176 => { // control (pedals)
+							match ev.data[1] {
+								64 => { // sustain/damper pedal
+									if ev.data[3] >= 64 { // pedal on
+										self.sustain = true
+									} else { // pedal off
+										self.sustain = false
+									}
+								},
+								_ => (),
+							}
 						},
 						_ => (),
 					}
@@ -130,7 +145,7 @@ impl Plugin for Piano {
 		let (_, output_buffer) = buffer.split();
 		for output_channel in output_buffer.into_iter() {
 			for output_sample in output_channel {
-				let (right, left) = event::update(&mut self.notes, 1_f32/self.sample_rate as f32);
+				let (right, left) = event::update(&mut self.notes, 1_f32/self.sample_rate as f32, self.sustain);
 				*output_sample = (left/2_f32)+(right/2_f32);
 			}
 		}
