@@ -1,6 +1,6 @@
 use event;
 
-pub fn note(note: u8, sample_rate: usize) -> event::Note {
+pub fn note(note: u8, _sample_rate: usize) -> event::Note {
 	let mut dispersion = 1_f32;
 	let loss = 1_f32;
 	let termination_points = 2;

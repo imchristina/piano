@@ -4,9 +4,9 @@ pub fn hammer(string: &mut string::String, stiffness: f32, size: usize, velocity
 	let length_strike = 0.00;
 	let length_retract = 0.01;
 	let length_total = length_strike + length_retract;
-	let mut hammer_position = -10_f32;
 	
 	if time < length_total && position+size < string.length {
+		let mut hammer_position;
 		if time < length_retract {
 			hammer_position = 1_f32;//time/length_strike;
 		} else {
@@ -25,7 +25,7 @@ pub fn hammer(string: &mut string::String, stiffness: f32, size: usize, velocity
 
 pub fn damper(string: &mut string::String, stiffness: f32, size: usize, position: usize, time: f32) -> bool {
 	let length_strike = 0.05;
-	let mut damper_position = -10_f32;
+	let damper_position;
 	
 	if time < length_strike && position+size < string.length {
 		damper_position = (time/length_strike)-1_f32;

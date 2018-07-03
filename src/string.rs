@@ -24,13 +24,11 @@ pub fn new(length: usize, dispersion: f32, loss: f32, termination_points: usize)
 }
 
 pub fn update(s: &mut String) -> (f32, f32) {
-	for i in 0..s.length { // calculate forces
-		let energy = (s.y[i]-s.y[i+1])*s.dispersion;
-		s.v[i+1] = (s.v[i+1] + energy) * s.loss;
+	for i in 1..s.length+1 { // calculate forces
+		let energy = (s.y[i]-s.y[i-1])*s.dispersion;
+		s.v[i-1] = (s.v[i-1] + energy) * s.loss;
 		s.v[i] -= energy;
-	}
-	for i in 0..s.length { // apply forces
-		s.y[i] += s.v[i]; // might be better to do loss here
+		s.y[i-1] += s.v[i-1]; // might be better to do loss here
 	}
 	for i in 0..s.termination_points { // soft terminations
 		s.y[i] *= s.termination_force*(i as f32); // left
