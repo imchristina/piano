@@ -125,7 +125,7 @@ impl Plugin for Piano {
 						176 => { // control (pedals)
 							match ev.data[1] {
 								64 => { // sustain/damper pedal
-									if ev.data[3] >= 64 { // pedal on
+									if ev.data[2] >= 64 { // pedal on
 										self.sustain = true
 									} else { // pedal off
 										self.sustain = false
@@ -146,7 +146,7 @@ impl Plugin for Piano {
 		for output_channel in output_buffer.into_iter() {
 			for output_sample in output_channel {
 				let (right, left) = event::update(&mut self.notes, 1_f32/self.sample_rate as f32, self.sustain);
-				*output_sample = (left/2_f32)+(right/2_f32);
+				*output_sample = (left/4_f32)+(right/4_f32);
 			}
 		}
 	}

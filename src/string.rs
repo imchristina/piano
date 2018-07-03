@@ -30,7 +30,7 @@ pub fn update(s: &mut String) -> (f32, f32) {
 		s.v[i] -= energy;
 	}
 	for i in 0..s.length { // apply forces
-		s.y[i] = s.y[i] + s.v[i]; // might be better to do loss here
+		s.y[i] += s.v[i]; // might be better to do loss here
 	}
 	for i in 0..s.termination_points { // soft terminations
 		s.y[i] *= s.termination_force*(i as f32); // left
