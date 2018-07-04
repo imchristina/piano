@@ -2,7 +2,7 @@ use string;
 
 pub fn hammer(string: &mut string::String, stiffness: f32, size: usize, velocity: f32, position: usize, time: f32) {
 	let length_strike = 0.00;
-	let length_retract = 0.01;
+	let length_retract = 1.11;
 	let length_total = length_strike + length_retract;
 	
 	if time < length_total && position+size < string.length {
@@ -16,8 +16,9 @@ pub fn hammer(string: &mut string::String, stiffness: f32, size: usize, velocity
 		hammer_position *= velocity/10_f32;
 		
 		for i in position..position+size {
-			if string.y[i] < hammer_position {
-				string.y[i] += (hammer_position-string.y[i])*stiffness;
+			let y = string.get_displacement(i);
+			if y < hammer_position {
+				string.set_displacement(i, y + (hammer_position-y)*stiffness);
 			}
 		}
 	}
@@ -34,9 +35,10 @@ pub fn damper(string: &mut string::String, stiffness: f32, size: usize, position
 	}
 		
 	for i in position..position+size {
-		if string.y[i] < damper_position {
-			string.y[i] += (damper_position-string.y[i])*stiffness;
+			let y = string.get_displacement(i);
+			if y < damper_position {
+				string.set_displacement(i, y + (damper_position-y)*stiffness);
+			}
 		}
-	}
 	time > 4_f32*length_strike
 }

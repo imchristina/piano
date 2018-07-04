@@ -1,6 +1,5 @@
 use string;
-use hammer::hammer as hammer;
-use hammer::damper as damper;
+use hammer::{hammer, damper};
 
 pub struct Note {
 	// String
@@ -15,9 +14,9 @@ pub struct Note {
 	pub released: bool,
 }
 
-pub fn new(points: usize, dispersion: f32, loss: f32, termination_points: usize, subsampling: usize) -> Note {
+pub fn new(points: usize, subsampling: usize) -> Note {
 	Note {
-		string: string::new(points, dispersion, loss, termination_points),
+		string: string::new(points),
 		time: 0_f32,
 		velocity: 0_f32,
 		damper: false,
@@ -52,7 +51,7 @@ pub fn update(notes: &mut Vec<Note>, dt: f32, sustain: bool) -> (f32, f32) { // 
 				} else {
 					hammer(&mut note.string, 0.9_f32, 5, note.velocity, 10, note.time); // TODO remove hardcoded values
 				}
-				let (string_left, string_right) = string::update(&mut note.string);
+				let (string_left, string_right) = note.string.update();
 				left += string_left;
 				right += string_right;
 			}

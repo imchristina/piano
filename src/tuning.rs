@@ -1,6 +1,13 @@
 use event;
 
 pub fn note(note: u8, _sample_rate: usize) -> event::Note {
+	let subsampling = 1;
+	let points = (440_f32*(1.059463_f32).powf(-(note as f32-44_f32))) as usize;
+	
+	event::new(points, subsampling)
+}
+
+/*pub fn _note_differential(note: u8, _sample_rate: usize) -> event::Note {
 	let mut dispersion = 1_f32;
 	let loss = 1_f32;
 	let termination_points = 2;
@@ -17,4 +24,4 @@ pub fn note(note: u8, _sample_rate: usize) -> event::Note {
 	}
 	
 	event::new(points, dispersion, loss, termination_points, subsampling)
-}
+}*/
