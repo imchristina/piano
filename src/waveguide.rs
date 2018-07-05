@@ -2,26 +2,30 @@ pub struct String {
 	pub length: usize,
 	pub r: Vec<f32>,
 	pub l: Vec<f32>,
-	pointer: usize, // end of string, +1 is start of string
+	start: usize,
+	end: usize,
 	// Filters
 	disperse_r: AllPassFilter,
 	disperse_l: AllPassFilter,
 }
 
 impl String {
-	pub fn update(&mut self) -> (f32, f32) { // TODO put this in the impl
-		let mut end_r = self.r[self.pointer];
-		let mut end_l = self.l[self.pointer];
+	pub fn update(&mut self) -> (f32, f32) {
+		let mut end_r = self.r[self.end];
+		let mut end_l = self.l[self.end];
 		
 		end_r = self.disperse_r.update(end_r);  // https://ccrma.stanford.edu/~jos/pasp/Dispersive_Traveling_Waves.html
 		end_l = self.disperse_l.update(end_l);
 		
-		self.r[self.pointer+1] = -end_l;
-		self.l[self.pointer+1] = -end_r;
+		self.r[self.start] = -end_l;
+		self.l[self.start] = -end_r;
 		
-		self.pointer += 1;
-		if self.pointer >= self.length {
-			self.pointer = 0;
+		self.start += 1;
+		self.end += 1;
+		if self.start > self.length {
+			self.start = 0;
+		} else if self.end > self.length {
+			self.end = 0;
 		}
 		
 		(end_r, end_l)
@@ -43,9 +47,10 @@ pub fn new(length: usize) -> String {
 		length: length - 1,
 		r: vec![0_f32; length],
 		l: vec![0_f32; length],
-		pointer: 0,
-		disperse_r: AllPassFilter::new(0.5_f32, 2),
-		disperse_l: AllPassFilter::new(0.5_f32, 2),
+		start: 0,
+		end: 1,
+		disperse_r: AllPassFilter::new(0.998_f32, 2),
+		disperse_l: AllPassFilter::new(0.998_f32, 2),
 	}
 }
 

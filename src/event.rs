@@ -44,7 +44,7 @@ pub fn update(notes: &mut Vec<Note>, dt: f32, sustain: bool) -> (f32, f32) { // 
 			let mut right = 0_f32;
 			for _i in 0..note.subsampling {
 				if note.damper {
-					if damper(&mut note.string, 0.5_f32, 10, 10, note.time) {
+					if damper(&mut note.string, 0.5_f32, 20, 10, note.time) {
 						note.damper = false;
 						note.active = false;
 					}
