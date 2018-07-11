@@ -14,8 +14,8 @@ impl String {
 		let mut end_r = self.r[self.end];
 		let mut end_l = self.l[self.end];
 		
-		let dispersed_r = self.disperse_r.update(vec!(0_f32, 0_f32));  // https://ccrma.stanford.edu/~jos/pasp/Dispersive_Traveling_Waves.html
-		let dispersed_l = self.disperse_l.update(vec!(0_f32, 0_f32));
+		let dispersed_r = self.disperse_r.update(vec!(0, 0));  // https://ccrma.stanford.edu/~jos/pasp/Dispersive_Traveling_Waves.html
+		let dispersed_l = self.disperse_l.update(vec!(0, 0));
 		end_r = dispersed_r[1];
 		end_l = dispersed_l[1];
 		
@@ -111,9 +111,9 @@ impl ThiranAllPassFilter {
 	}
 	
 	fn update(&mut self, input: Vec<f32>) -> Vec<f32> {
-		let mut output = vec![0_f32; self.n+1]; // TODO are these +1s on the vecs/loops needed?
-		for out_n in 0..self.n+1 {
-			for n in 0..self.n+1 {
+		let mut output = vec![0_f32; self.n+1];
+		for out_n in 0..self.n {
+			for n in 0..self.n {
 				output[out_n] += self.a[n]*input[n]+self.b[n]*input[n];
 			}
 		}
