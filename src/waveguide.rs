@@ -14,8 +14,8 @@ impl String {
 		let mut end_r = self.r[self.end];
 		let mut end_l = self.l[self.end];
 		
-		let dispersed_r = self.disperse_r.update(vec!(0, 0));  // https://ccrma.stanford.edu/~jos/pasp/Dispersive_Traveling_Waves.html
-		let dispersed_l = self.disperse_l.update(vec!(0, 0));
+		let dispersed_r = self.disperse_r.update(vec!(0_f32, 0_f32));  // https://ccrma.stanford.edu/~jos/pasp/Dispersive_Traveling_Waves.html
+		let dispersed_l = self.disperse_l.update(vec!(0_f32, 0_f32));
 		end_r = dispersed_r[1];
 		end_l = dispersed_l[1];
 		
