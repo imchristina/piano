@@ -55,8 +55,8 @@ pub fn new(length: usize) -> String {
 		l: vec![0_f32; length],
 		start: 0,
 		end: 1,
-		disperse_r: ThiranAllPassFilter::new(1_f32, 3),
-		disperse_l: ThiranAllPassFilter::new(1_f32, 3),
+		disperse_r: ThiranAllPassFilter::new(2_f32, 2), //6.15782
+		disperse_l: ThiranAllPassFilter::new(2_f32, 2),
 		end_r_buffer: vec![0_f32; 3],
 		end_l_buffer: vec![0_f32; 3],
 	}
@@ -117,8 +117,8 @@ impl ThiranAllPassFilter {
 	
 	fn update(&mut self, input: &Vec<f32>) -> Vec<f32> {
 		let mut output = vec![0_f32; self.n+1];
-		for out_n in 0..self.n {
-			for n in 0..self.n {
+		for out_n in 0..self.n+1 {
+			for n in 0..self.n+1 {
 				output[out_n] += self.a[n]*input[n]+self.b[n]*output[n];
 			}
 		}
