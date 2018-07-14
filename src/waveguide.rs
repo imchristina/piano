@@ -7,17 +7,21 @@ pub struct String {
 	// Filters
 	disperse_r: ThiranAllPassFilter,
 	disperse_l: ThiranAllPassFilter,
+	end_r_buffer: Vec<f32>,
+	end_l_buffer: Vec<f32>,
 }
 
 impl String {
 	pub fn update(&mut self) -> (f32, f32) {
-		let mut end_r = self.r[self.end];
-		let mut end_l = self.l[self.end];
+		self.end_r_buffer.push(self.r[self.end]);
+		self.end_l_buffer.push(self.l[self.end]);
+		self.end_r_buffer.pop();
+		self.end_l_buffer.pop();
 		
-		let dispersed_r = self.disperse_r.update(vec!(0_f32, 0_f32));  // https://ccrma.stanford.edu/~jos/pasp/Dispersive_Traveling_Waves.html
-		let dispersed_l = self.disperse_l.update(vec!(0_f32, 0_f32));
-		end_r = dispersed_r[1];
-		end_l = dispersed_l[1];
+		self.end_r_buffer = self.disperse_r.update(&self.end_r_buffer);  // https://ccrma.stanford.edu/~jos/pasp/Dispersive_Traveling_Waves.html
+		self.end_l_buffer = self.disperse_l.update(&self.end_l_buffer);
+		let end_r = self.end_r_buffer[1];
+		let end_l = self.end_l_buffer[1];
 		
 		self.r[self.start] = -end_l;
 		self.l[self.start] = -end_r;
@@ -51,8 +55,10 @@ pub fn new(length: usize) -> String {
 		l: vec![0_f32; length],
 		start: 0,
 		end: 1,
-		disperse_r: ThiranAllPassFilter::new(0.1_f32, 2),
-		disperse_l: ThiranAllPassFilter::new(0.1_f32, 2),
+		disperse_r: ThiranAllPassFilter::new(1_f32, 3),
+		disperse_l: ThiranAllPassFilter::new(1_f32, 3),
+		end_r_buffer: vec![0_f32; 3],
+		end_l_buffer: vec![0_f32; 3],
 	}
 }
 
@@ -102,7 +108,6 @@ impl ThiranAllPassFilter {
 			a[k] = out;
 			b[n-k] = out;
 		}
-		println!("{}", a[1]);
 		Self {
 			a,
 			b,
@@ -110,11 +115,11 @@ impl ThiranAllPassFilter {
 		}
 	}
 	
-	fn update(&mut self, input: Vec<f32>) -> Vec<f32> {
+	fn update(&mut self, input: &Vec<f32>) -> Vec<f32> {
 		let mut output = vec![0_f32; self.n+1];
 		for out_n in 0..self.n {
 			for n in 0..self.n {
-				output[out_n] += self.a[n]*input[n]+self.b[n]*input[n];
+				output[out_n] += self.a[n]*input[n]+self.b[n]*output[n];
 			}
 		}
 		output
