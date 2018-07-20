@@ -8,5 +8,5 @@ pub fn note(note: u8, _sample_rate: usize) -> event::Note {
 		points = 30;
 	}
 	
-	event::new(points, subsampling)
+	event::new(points, subsampling, 6.15782_f32)  //6.15782
 }

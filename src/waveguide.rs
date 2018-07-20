@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 pub struct String {
 	pub length: usize,
 	pub r: Vec<f32>,
@@ -7,21 +9,15 @@ pub struct String {
 	// Filters
 	disperse_r: ThiranAllPassFilter,
 	disperse_l: ThiranAllPassFilter,
-	end_r_buffer: Vec<f32>,
-	end_l_buffer: Vec<f32>,
 }
 
 impl String {
 	pub fn update(&mut self) -> (f32, f32) {
-		self.end_r_buffer.push(self.r[self.end]);
-		self.end_l_buffer.push(self.l[self.end]);
-		self.end_r_buffer.pop();
-		self.end_l_buffer.pop();
+		let mut end_r = self.r[self.end];
+		let mut end_l = self.l[self.end];
 		
-		self.end_r_buffer = self.disperse_r.update(&self.end_r_buffer);  // https://ccrma.stanford.edu/~jos/pasp/Dispersive_Traveling_Waves.html
-		self.end_l_buffer = self.disperse_l.update(&self.end_l_buffer);
-		let end_r = self.end_r_buffer[1];
-		let end_l = self.end_l_buffer[1];
+		end_r = self.disperse_r.update(end_r);  // https://ccrma.stanford.edu/~jos/pasp/Dispersive_Traveling_Waves.html
+		end_l = self.disperse_l.update(end_l);
 		
 		self.r[self.start] = -end_l;
 		self.l[self.start] = -end_r;
@@ -48,17 +44,15 @@ impl String {
 	}
 }
 
-pub fn new(length: usize) -> String {
+pub fn new(length: usize, dispersion_delay: f32) -> String {
 	String {
 		length: length - 1,
 		r: vec![0_f32; length],
 		l: vec![0_f32; length],
 		start: 0,
 		end: 1,
-		disperse_r: ThiranAllPassFilter::new(2_f32, 2), //6.15782
-		disperse_l: ThiranAllPassFilter::new(2_f32, 2),
-		end_r_buffer: vec![0_f32; 3],
-		end_l_buffer: vec![0_f32; 3],
+		disperse_r: ThiranAllPassFilter::new(dispersion_delay, 2),
+		disperse_l: ThiranAllPassFilter::new(dispersion_delay, 2),
 	}
 }
 
@@ -93,6 +87,8 @@ struct ThiranAllPassFilter { // https://ccrma.stanford.edu/~jos/pasp/Thiran_Allp
 	a: Vec<f32>,
 	b: Vec<f32>,
 	n: usize,
+	input: VecDeque<f32>,
+	output: VecDeque<f32>,
 }
 
 impl ThiranAllPassFilter {
@@ -108,21 +104,38 @@ impl ThiranAllPassFilter {
 			a[k] = out;
 			b[n-k] = out;
 		}
+		let buffer_size = (n*2)+1;
+		let mut input: VecDeque<f32> = VecDeque::with_capacity(buffer_size);
+		let mut output: VecDeque<f32> = VecDeque::with_capacity(buffer_size);
+		for _i in 0..buffer_size {
+			input.push_back(0_f32);
+			output.push_back(0_f32);
+		}
 		Self {
 			a,
 			b,
 			n,
+			input,
+			output,
 		}
 	}
 	
-	fn update(&mut self, input: &Vec<f32>) -> Vec<f32> {
-		let mut output = vec![0_f32; self.n+1];
-		for out_n in 0..self.n+1 {
-			for n in 0..self.n+1 {
-				output[out_n] += self.a[n]*input[n]+self.b[n]*output[n];
+	fn update(&mut self, input: f32) -> f32 {
+		self.input.pop_front();
+		self.input.push_back(input);
+		self.output.pop_front();
+		self.output.push_back(input);  // not sure if this is how the output is supposed to be handled
+		
+		for n in 0..self.n+1 {
+			for i in 0..self.n+1 {
+				let input_mul = *self.input.get(n-i+self.n).unwrap();
+				let output = *self.output.get_mut(n-i+self.n).unwrap();
+				let output_add = self.a[i]*input_mul+self.b[i]*output; // this whole thing is super ugly
+				let output = self.output.get_mut(n).unwrap();
+				*output += output_add;
 			}
 		}
-		output
+		*self.output.back().unwrap()
 	}
 }
 

@@ -14,9 +14,9 @@ pub struct Note {
 	pub released: bool,
 }
 
-pub fn new(points: usize, subsampling: usize) -> Note {
+pub fn new(points: usize, subsampling: usize, dispersion_delay: f32) -> Note {
 	Note {
-		string: string::new(points),
+		string: string::new(points, dispersion_delay),
 		time: 0_f32,
 		velocity: 0_f32,
 		damper: false,
