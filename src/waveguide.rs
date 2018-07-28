@@ -126,13 +126,14 @@ impl ThiranAllPassFilter {
 		self.output.pop_front();
 		self.output.push_back(0_f32);  // not sure if this is how the output is supposed to be handled
 		
+		let mut filtered_output = 0_f32;
 		for n in 0..self.order+1 {
-			let filtered_output = self.a[n]**self.input.get(self.order-n).unwrap()+self.b[n]**self.output.get(self.order-n).unwrap();
-			let output = self.output.get_mut(self.order).unwrap();
-			*output = filtered_output;
+			filtered_output += self.a[n]**self.input.get(self.order-n).unwrap()+self.b[n]**self.output.get(self.order-n).unwrap();
 		}
+		let output = self.output.get_mut(self.order).unwrap();
+		*output = filtered_output;
 		
-		*self.output.back().unwrap()
+		filtered_output
 	}
 }
 
