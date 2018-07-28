@@ -56,7 +56,7 @@ pub fn new(length: usize, dispersion_delay: f32) -> String {
 	}
 }
 
-struct AllPassFilter {
+struct AllPassFilter { // Generic integer-delay allpass
 	gain: f32,
 	delay: Vec<f32>,
 	pointer: usize,
@@ -86,25 +86,25 @@ impl AllPassFilter {
 struct ThiranAllPassFilter { // https://ccrma.stanford.edu/~jos/pasp/Thiran_Allpass_Interpolators.html
 	a: Vec<f32>,
 	b: Vec<f32>,
-	n: usize,
+	order: usize,
 	input: VecDeque<f32>,
 	output: VecDeque<f32>,
 }
 
 impl ThiranAllPassFilter {
-	fn new(delay: f32, n: usize) -> Self {
-		let mut a = vec![0_f32; n+1];
-		let mut b = vec![0_f32; n+1];
-		for k in 0..n+1 {
+	fn new(delay: f32, order: usize) -> Self {
+		let mut a = vec![0_f32; order+1];
+		let mut b = vec![0_f32; order+1];
+		for k in 0..order+1 {
 			let mut ak = 1_f32;
-			for i in 0..n+1 {
-				ak *= (delay-(n+i) as f32)/(delay-(n+k+i) as f32);
+			for i in 0..order+1 {
+				ak *= (delay-(order+i) as f32)/(delay-(order+k+i) as f32);
 			}
-			let out = (-1_f32).powi(k as i32) * n_choose_k(n, k) as f32 * ak;
+			let out = (-1_f32).powi(k as i32) * n_choose_k(order, k) as f32 * ak;
 			a[k] = out;
-			b[n-k] = out;
+			b[order-k] = out;
 		}
-		let buffer_size = (n*2)+1;
+		let buffer_size = order+1;
 		let mut input: VecDeque<f32> = VecDeque::with_capacity(buffer_size);
 		let mut output: VecDeque<f32> = VecDeque::with_capacity(buffer_size);
 		for _i in 0..buffer_size {
@@ -114,9 +114,9 @@ impl ThiranAllPassFilter {
 		Self {
 			a,
 			b,
-			n,
-			input,
-			output,
+			order,
+			input, // x
+			output, // y
 		}
 	}
 	
@@ -124,17 +124,14 @@ impl ThiranAllPassFilter {
 		self.input.pop_front();
 		self.input.push_back(input);
 		self.output.pop_front();
-		self.output.push_back(input);  // not sure if this is how the output is supposed to be handled
+		self.output.push_back(0_f32);  // not sure if this is how the output is supposed to be handled
 		
-		for n in 0..self.n+1 {
-			for i in 0..self.n+1 {
-				let input_mul = *self.input.get(n-i+self.n).unwrap();
-				let output = *self.output.get_mut(n-i+self.n).unwrap();
-				let output_add = self.a[i]*input_mul+self.b[i]*output; // this whole thing is super ugly
-				let output = self.output.get_mut(n).unwrap();
-				*output += output_add;
-			}
+		for n in 0..self.order+1 {
+			let filtered_output = self.a[n]**self.input.get(self.order-n).unwrap()+self.b[n]**self.output.get(self.order-n).unwrap();
+			let output = self.output.get_mut(self.order).unwrap();
+			*output = filtered_output;
 		}
+		
 		*self.output.back().unwrap()
 	}
 }
