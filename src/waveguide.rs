@@ -16,8 +16,8 @@ impl String {
 		let mut end_r = self.r[self.end];
 		let mut end_l = self.l[self.end];
 		
-		end_r = self.disperse_r.update(end_r);  // https://ccrma.stanford.edu/~jos/pasp/Dispersive_Traveling_Waves.html
-		end_l = self.disperse_l.update(end_l);
+		end_r = self.disperse_r.update(0_f32);  // https://ccrma.stanford.edu/~jos/pasp/Dispersive_Traveling_Waves.html
+		end_l = self.disperse_l.update(0_f32);
 		
 		self.r[self.start] = -end_l;
 		self.l[self.start] = -end_r;
@@ -96,20 +96,29 @@ impl ThiranAllPassFilter {
 		let mut a = vec![0_f32; order+1];
 		let mut b = vec![0_f32; order+1];
 		for k in 0..order+1 {
-			let mut ak = 1_f32;
-			for i in 0..order+1 {
-				ak *= (delay-(order+i) as f32)/(delay-(order+k+i) as f32);
+			let mut ak = n_choose_k(order, k) as f64;
+			if k%2==1 {
+				ak = -ak;
 			}
-			let out = (-1_f32).powi(k as i32) * n_choose_k(order, k) as f32 * ak;
-			a[k] = out;
-			b[order-k] = out;
+			for i in 0..order+1 {
+				ak *= delay as f64-(order-i) as f64;
+				ak /= delay as f64-(order-k-i) as f64;
+			}
+			a[k] = ak as f32;
+			b[order-k] = ak as f32;
+			println!("{}", ak);
 		}
 		let buffer_size = order+1;
 		let mut input: VecDeque<f32> = VecDeque::with_capacity(buffer_size);
 		let mut output: VecDeque<f32> = VecDeque::with_capacity(buffer_size);
-		for _i in 0..buffer_size {
-			input.push_back(0_f32);
-			output.push_back(0_f32);
+		for i in 0..buffer_size {
+			if i == 0 {
+				input.push_back(1_f32);
+				output.push_back(1_f32);
+			} else {
+				input.push_back(0_f32);
+				output.push_back(0_f32);
+			}
 		}
 		Self {
 			a,
