@@ -14,9 +14,9 @@ pub struct Note {
 	pub released: bool,
 }
 
-pub fn new(points: usize, subsampling: usize, dispersion_delay: f32) -> Note {
+pub fn new(points: usize, subsampling: usize, dispersion_delay: f32, dispersion_order: usize) -> Note {
 	Note {
-		string: Waveguide::new(points, dispersion_delay),
+		string: Waveguide::new(points, dispersion_delay, dispersion_order),
 		time: 0_f32,
 		velocity: 0_f32,
 		damper: false,

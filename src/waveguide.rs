@@ -1,4 +1,4 @@
-use filter::ThiranAllPass;
+use filter::Filter;
 
 pub struct Waveguide {
 	pub length: usize,
@@ -7,28 +7,28 @@ pub struct Waveguide {
 	start: usize,
 	end: usize,
 	// Filters
-	disperse_r: ThiranAllPass,
-	disperse_l: ThiranAllPass,
+	disperse_r: Filter,
+	disperse_l: Filter,
 }
 
 impl Waveguide {
-	pub fn new(length: usize, dispersion_delay: f32) -> Self {
+	pub fn new(length: usize, dispersion_delay: f32, dispersion_order: usize) -> Self {
 		Self {
 			length: length - 1,
 			r: vec![0_f32; length],
 			l: vec![0_f32; length],
 			start: 0,
 			end: 1,
-			disperse_r: ThiranAllPass::new(dispersion_delay, 2),
-			disperse_l: ThiranAllPass::new(dispersion_delay, 2),
+			disperse_r: Filter::_passthru(),//thiran_allpass(dispersion_delay, dispersion_order),
+			disperse_l: Filter::_passthru(),//thiran_allpass(dispersion_delay, dispersion_order),
 		}
 	}
 	pub fn update(&mut self) -> (f32, f32) {
 		let mut end_r = self.r[self.end];
 		let mut end_l = self.l[self.end];
 		
-		end_r = self.disperse_r.update(0_f32);  // https://ccrma.stanford.edu/~jos/pasp/Dispersive_Traveling_Waves.html
-		end_l = self.disperse_l.update(0_f32);
+		end_r = self.disperse_r.update(end_r);  // https://ccrma.stanford.edu/~jos/pasp/Dispersive_Traveling_Waves.html
+		end_l = self.disperse_l.update(end_l);
 		
 		self.r[self.start] = -end_l;
 		self.l[self.start] = -end_r;
