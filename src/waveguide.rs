@@ -96,17 +96,13 @@ impl ThiranAllPassFilter {
 		let mut a = vec![0_f32; order+1];
 		let mut b = vec![0_f32; order+1];
 		for k in 0..order+1 {
-			let mut ak = n_choose_k(order, k) as f64;
-			if k%2==1 {
-				ak = -ak;
-			}
+			let mut ak = 1_f32;
 			for i in 0..order+1 {
-				ak *= delay as f64-(order-i) as f64;
-				ak /= delay as f64-(order-k-i) as f64;
+				ak *= (delay-order as f32+i as f32)/(delay-order as f32+k as f32+i as f32);
 			}
-			a[k] = ak as f32;
-			b[order-k] = ak as f32;
-			println!("{}", ak);
+			let out = (-1_f32).powi(k as i32) * n_choose_k(order, k) as f32 * ak;
+			a[k] = out;
+			b[order-k] = out;
 		}
 		let buffer_size = order+1;
 		let mut input: VecDeque<f32> = VecDeque::with_capacity(buffer_size);
