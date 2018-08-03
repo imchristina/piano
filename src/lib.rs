@@ -6,10 +6,10 @@ use vst::buffer::AudioBuffer;
 use vst::event::Event;
 use vst::api::Events;
 mod waveguide;
-use waveguide as string;
 mod hammer;
 mod event;
 mod tuning;
+mod filter;
 
 struct Piano {
 	notes: Vec<event::Note>,

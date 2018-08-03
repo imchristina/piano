@@ -1,9 +1,9 @@
-use string;
+use waveguide::Waveguide;
 use hammer::{hammer, damper};
 
 pub struct Note {
 	// String
-	pub string: string::String, // TODO more than one string per note
+	pub string: Waveguide, // TODO more than one string per note
 	// Hammer
 	pub time: f32,
 	pub velocity: f32,
@@ -16,7 +16,7 @@ pub struct Note {
 
 pub fn new(points: usize, subsampling: usize, dispersion_delay: f32) -> Note {
 	Note {
-		string: string::new(points, dispersion_delay),
+		string: Waveguide::new(points, dispersion_delay),
 		time: 0_f32,
 		velocity: 0_f32,
 		damper: false,

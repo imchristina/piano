@@ -1,6 +1,6 @@
-use string;
+use waveguide::Waveguide;
 
-pub fn hammer(string: &mut string::String, stiffness: f32, size: usize, velocity: f32, position: usize, time: f32) {
+pub fn hammer(string: &mut Waveguide, stiffness: f32, size: usize, velocity: f32, position: usize, time: f32) {
 	let length_strike = 0.00;
 	let length_retract = 0.01;
 	let length_total = length_strike + length_retract;
@@ -24,7 +24,7 @@ pub fn hammer(string: &mut string::String, stiffness: f32, size: usize, velocity
 	}
 }
 
-pub fn damper(string: &mut string::String, stiffness: f32, size: usize, position: usize, time: f32) -> bool {
+pub fn damper(string: &mut Waveguide, stiffness: f32, size: usize, position: usize, time: f32) -> bool {
 	let length_strike = 0.02;
 	let damper_position;
 	
