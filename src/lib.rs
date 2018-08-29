@@ -56,7 +56,7 @@ impl Plugin for Piano {
 							self.notes[ev.data[1] as usize].active = true;
 							self.notes[ev.data[1] as usize].damper = false;
 							self.notes[ev.data[1] as usize].time = 0_f32;
-							self.notes[ev.data[1] as usize].velocity = ev.data[2] as f32 / 12_f32;
+							self.notes[ev.data[1] as usize].velocity = ev.data[2] as f32 / 50_f32;
 						},
 						176 => { // control (pedals)
 							match ev.data[1] {
@@ -82,7 +82,7 @@ impl Plugin for Piano {
 		for output_channel in output_buffer.into_iter() {
 			for output_sample in output_channel {
 				let (right, left) = event::update(&mut self.notes, 1_f32/self.sample_rate as f32, self.sustain);
-				*output_sample = (left/4_f32)+(right/4_f32);
+				*output_sample = (left/2_f32)+(right/2_f32);
 			}
 		}
 	}

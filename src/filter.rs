@@ -52,14 +52,10 @@ impl Filter {
 		let mut input: VecDeque<f32> = VecDeque::with_capacity(buffer_size);
 		let mut output: VecDeque<f32> = VecDeque::with_capacity(buffer_size);
 		for i in 0..buffer_size {
-			if i == 0 {
-				input.push_back(1_f32);
-				output.push_back(1_f32);
-			} else {
-				input.push_back(0_f32);
-				output.push_back(0_f32);
-			}
+			input.push_back(0_f32);
+			output.push_back(0_f32);
 		}
+
 		Self {
 			a,
 			b,
@@ -79,8 +75,8 @@ impl Filter {
 			output.push_back(0_f32);
 		}
 		Self {
-			a: vec![1_f32, 0.5_f32, 0_f32],
-			b: vec![1_f32, 0_f32, 0_f32],
+			b: vec![1.0, 0.0, 0.0],
+			a: vec![0.0, 0.0, 0.0],
 			order,
 			input, // x
 			output, // y
@@ -93,10 +89,17 @@ impl Filter {
 		
 		let mut filtered_output = 0_f32;
 		for n in 0..self.order+1 {
-			filtered_output += self.b[n]**self.input.get(self.order-n).unwrap();
+			filtered_output += self.b[n]**self.input.get(n).unwrap();
 			if n > 0 {
-				filtered_output += self.a[n]**self.output.get(self.order-n).unwrap();
+				filtered_output -= self.a[n]**self.output.get(n-1).unwrap();
 			}
+		}
+		filtered_output *= self.a[0];
+		
+		if filtered_output > 1.0 {
+			filtered_output = 1.0;
+		} else if filtered_output < -1.0 {
+			filtered_output = -1.0;
 		}
 		
 		self.output.pop_front();
