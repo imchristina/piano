@@ -2,7 +2,7 @@
 SAMPLE_RATE = 44100
 BUFFER_SIZE = 441000
 SIN_TEST = false
-RAND_TEST = false
+RAND_TEST = true
 NO_STRIKE = false
 MANUAL_CONTROL = false
 BLAST_PROCESSING = true
@@ -25,7 +25,7 @@ function love.load()
 		if SIN_TEST then
 			value = math.sin(i/10)*5
 		elseif RAND_TEST then
-			value = math.random(-3, 3)
+			value = math.random(-1, 1)
 		elseif NO_STRIKE then	
 		else -- hammer model goes here, for now just a square wave sort of thing
 			if i > 10 and i < 15 then

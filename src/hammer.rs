@@ -1,4 +1,5 @@
 use waveguide::Waveguide;
+extern crate rand;
 
 pub fn hammer(string: &mut Waveguide, stiffness: f32, size: usize, velocity: f32, position: usize, time: f32) {
 	let length_strike = 0.00;
@@ -24,21 +25,21 @@ pub fn hammer(string: &mut Waveguide, stiffness: f32, size: usize, velocity: f32
 	}
 }
 
-pub fn damper(string: &mut Waveguide, stiffness: f32, size: usize, position: usize, time: f32) -> bool {
-	let length_strike = 0.02;
-	let damper_position;
-	
-	if time < length_strike && position+size < string.length {
-		damper_position = (time/length_strike)-0.9_f32;
-	} else {
-		damper_position = 0.1_f32;
-	}
-		
-	for i in position..position+size {
-			let y = string.get_displacement(i);
-			if y < damper_position {
-				string.set_displacement(i, y + (damper_position-y)*stiffness);
-			}
+pub fn rand_hammer(string: &mut Waveguide, velocity: f32, time: f32) {
+	if time == 0.0 {
+		for i in 1..string.length {
+			string.set_displacement(i, rand::random::<f32>()*velocity);
 		}
-	time > 4_f32*length_strike
+	}
 }
+
+pub fn damper(string: &mut Waveguide, stiffness: f32, size: usize, position: usize, time: f32) -> bool {
+	let length_strike = 0.08;
+
+	for i in position..position+size {
+		let y = string.get_displacement(i);
+		string.set_displacement(i, y*stiffness);
+	}
+	time > length_strike
+}
+

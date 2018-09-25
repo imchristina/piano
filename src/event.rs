@@ -1,5 +1,5 @@
 use waveguide::Waveguide;
-use hammer::{hammer, damper};
+use hammer::*;
 
 pub struct Note {
 	// String
@@ -14,15 +14,17 @@ pub struct Note {
 	pub released: bool,
 }
 
-pub fn new(points: usize, subsampling: usize, dispersion_delay: f32, dispersion_order: usize) -> Note {
-	Note {
-		string: Waveguide::new(points, dispersion_delay, dispersion_order),
-		time: 0_f32,
-		velocity: 0_f32,
-		damper: false,
-		subsampling,
-		active: false,
-		released: false,
+impl Note {
+	pub fn new(points: usize, subsampling: usize, dispersion_delay: f32, dispersion_order: usize) -> Self {
+		Self {
+			string: Waveguide::new(points, dispersion_delay, dispersion_order),
+			time: 0_f32,
+			velocity: 0_f32,
+			damper: false,
+			subsampling,
+			active: false,
+			released: false,
+		}
 	}
 }
 
@@ -49,7 +51,8 @@ pub fn update(notes: &mut Vec<Note>, dt: f32, sustain: bool) -> (f32, f32) { // 
 						note.active = false;
 					}
 				} else {
-					hammer(&mut note.string, 0.9_f32, 1, note.velocity, 10, note.time); // TODO remove hardcoded values
+					//hammer(&mut note.string, 0.9_f32, 1, note.velocity, 10, note.time); // TODO remove hardcoded values
+					rand_hammer(&mut note.string, note.velocity, note.time);
 				}
 				let (string_left, string_right) = note.string.update();
 				left += string_left;

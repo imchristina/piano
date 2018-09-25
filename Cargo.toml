@@ -5,6 +5,7 @@ authors = ["nutcase84 <nutcase84@protonmail.com>"]
 
 [dependencies]
 vst = "0.0.1"
+rand = "0.5.5"
 
 [lib]
 name = "piano"

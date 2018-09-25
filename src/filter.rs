@@ -84,8 +84,8 @@ impl Filter {
 	}
 	
 	pub fn update(&mut self, input: f32) -> f32 {
-		self.input.pop_front();
-		self.input.push_back(input);
+		self.input.pop_back();
+		self.input.push_front(input);
 		
 		let mut filtered_output = 0_f32;
 		for n in 0..self.order+1 {
@@ -97,13 +97,13 @@ impl Filter {
 		filtered_output *= self.a[0];
 		
 		if filtered_output > 1.0 {
-			filtered_output = 1.0;
+			//filtered_output = 1.0;
 		} else if filtered_output < -1.0 {
-			filtered_output = -1.0;
+			//filtered_output = -1.0;
 		}
 		
-		self.output.pop_front();
-		self.output.push_back(filtered_output);
+		self.output.pop_back();
+		self.output.push_front(filtered_output);
 		
 		filtered_output
 	}
