@@ -5,24 +5,28 @@ use vst::plugin::{Info, Plugin, Category};
 use vst::buffer::AudioBuffer;
 use vst::event::Event;
 use vst::api::Events;
-mod waveguide;
-mod hammer;
-mod event;
-mod tuning;
-mod filter;
+extern crate rand;
+use self::rand::Rng;
+mod string;
+use string::String;
 
 struct Piano {
-	notes: Vec<event::Note>,
-	sample_rate: usize,
-	sustain: bool,
+	note: String,
+	init_displacement: Vec<f32>,
 }
 
 impl Default for Piano {
 	fn default() -> Piano {
 		Piano {
-			notes: Vec::new(),
-			sample_rate: 44100,
-			sustain: false,
+			note: String {
+				length: 500-1,
+				dispersion: 1.0,
+				termination_length: 2,
+				termination_force: 1.0/3.0,
+				displacement: vec![0.0; 500],
+				velocity: vec![0.0; 500],
+			}, 
+			init_displacement: Vec::new(),
 		}
 	}
 }
@@ -30,7 +34,7 @@ impl Default for Piano {
 impl Plugin for Piano {
 	fn get_info(&self) -> Info {
 		Info {
-			name: "Piano".to_string(),
+			name: "String Test".to_string(),
 			unique_id: 0,
 			inputs: 0,
 			outputs: 1,
@@ -40,8 +44,9 @@ impl Plugin for Piano {
 		}
 	}
 	fn init(&mut self) {
-		for i in 0..128 {
-			self.notes.push(tuning::note(i, self.sample_rate));
+		let mut rng = rand::thread_rng();
+		for _i in 0..500 {
+			self.init_displacement.push((rng.gen::<f32>()-0.5)*2.0)
 		}
 	}
 	fn process_events(&mut self, events: &Events) {
@@ -50,21 +55,18 @@ impl Plugin for Piano {
 				Event::Midi(ev) => {
 					match ev.data[0] {
 						128 => { // note off
-							self.notes[ev.data[1] as usize].released = true;
 						},
 						144 => { // note on
-							self.notes[ev.data[1] as usize].active = true;
-							self.notes[ev.data[1] as usize].damper = false;
-							self.notes[ev.data[1] as usize].time = 0_f32;
-							self.notes[ev.data[1] as usize].velocity = (ev.data[2] as f32 / 127_f32).powi(2);
+							self.note.displacement = vec![0.0;500];
+							self.note.velocity = self.init_displacement.clone();
 						},
 						176 => { // control (pedals)
 							match ev.data[1] {
 								64 => { // sustain/damper pedal
 									if ev.data[2] >= 64 { // pedal on
-										self.sustain = true
+										
 									} else { // pedal off
-										self.sustain = false
+										
 									}
 								},
 								_ => (),
@@ -81,8 +83,7 @@ impl Plugin for Piano {
 		let (_, output_buffer) = buffer.split();
 		for output_channel in output_buffer.into_iter() {
 			for output_sample in output_channel {
-				let (right, left) = event::update(&mut self.notes, 1_f32/self.sample_rate as f32, self.sustain);
-				*output_sample = left+right;
+				*output_sample = self.note.update();
 			}
 		}
 	}

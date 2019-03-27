@@ -1,5 +1,7 @@
+-- Put on protective gear before looking at this garbage
+
 -- Settings
-SAMPLE_RATE = 44100
+SAMPLE_RATE = 96000
 BUFFER_SIZE = 441000
 SIN_TEST = false
 RAND_TEST = true
@@ -12,7 +14,6 @@ SAMPLE_POINT = true -- sample string position if false, velocity if true
 DELAY_LINE_SIZE = 500 -- number of points in string, turns out that it also acts as the length or tension of the string, as the sound gets higher frequency as this number gets lower
 TRAVEL_SPEED = 2000
 DISPERSION_COEFFICIENT = 1 -- energy transfered into surrounding points
-STRING_RESISTANCE = 1 -- loss in string between dispersion points
 TERMINATION_POINTS = 3
 TERMINATION_FORCE = 1/TERMINATION_POINTS
 
@@ -23,7 +24,7 @@ function love.load()
 	while i < DELAY_LINE_SIZE do
 		local value = 0
 		if SIN_TEST then
-			value = math.sin(i/10)*5
+			value = math.sin(i/10)
 		elseif RAND_TEST then
 			value = math.random(-1, 1)
 		elseif NO_STRIKE then	
@@ -39,7 +40,6 @@ function love.load()
 		i = i + 1
 	end
 
-	--audio_streaming = love.audio.newQueueableSource(SAMPLE_RATE, 16, 1)
 	audio_buffer = love.sound.newSoundData(BUFFER_SIZE, SAMPLE_RATE, 16, 1)
 	cur_sample = 0
 end
@@ -48,7 +48,7 @@ function update_string(string, dt)
 	local i = 1
 	while i < DELAY_LINE_SIZE do -- disperse energy right
 		local energy = (string[i].y-string[i+1].y)*DISPERSION_COEFFICIENT
-		string[i+1].v = (string[i+1].v + energy) * STRING_RESISTANCE
+		string[i+1].v = string[i+1].v + energy
 		string[i].v = string[i].v - energy
 		i = i + 1
 	end
@@ -59,7 +59,6 @@ function update_string(string, dt)
 
 	local i = 1
 	while i <= TERMINATION_POINTS do --rigid terminations
-		string[(DELAY_LINE_SIZE+i-i*2)+1].y = string[(DELAY_LINE_SIZE+i-i*2)+1].y*(TERMINATION_FORCE*i)
 		string[i].y = string[i].y*(TERMINATION_FORCE*i)
 		i = i + 1
 	end
@@ -72,16 +71,12 @@ function update_string(string, dt)
 	string[1].v = 0
 	string[DELAY_LINE_SIZE].v = 0
 
-	if cur_sample < BUFFER_SIZE and true then--not sample_now then
-		--local sample = string[10].y/20
+	if cur_sample < BUFFER_SIZE then
 		if sample > 1 or sample < -1 then
 			print("audio clipped")
 		end
 		audio_buffer:setSample(cur_sample, sample)
 		cur_sample = cur_sample + 1
-		sample_now = true
-	else
-		sample_now = false
 	end
 	return string
 end

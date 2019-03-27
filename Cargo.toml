@@ -1,12 +1,13 @@
 [package]
-name = "piano"
+name = "string"
 version = "0.1.0"
-authors = ["nutcase84 <nutcase84@protonmail.com>"]
+authors = ["cyborg"]
+edition = "2018"
 
 [dependencies]
-vst = "0.0.1"
-rand = "0.5.5"
+vst = "*"
+rand = "*"
 
 [lib]
-name = "piano"
+name = "string"
 crate-type = ["cdylib"]
