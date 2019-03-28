@@ -80,11 +80,20 @@ impl Plugin for Piano {
 		}
 	}
 	fn process(&mut self, buffer: &mut AudioBuffer<f32>) {
+		let output_channels = buffer.output_count();
+		let num_samples = buffer.samples();
 		let (_, output_buffer) = buffer.split();
-		for output_channel in output_buffer.into_iter() {
-			for output_sample in output_channel {
-				*output_sample = self.note.update();
+
+		for i in 0..num_samples {
+			let sample = self.note.update();
+			// Throw away a sample
+			let _ = self.note.update();
+
+			// Write the same sample to each of the channels (make it mono)
+			for out in output_buffer {
+				out[i] = sample;
 			}
+
 		}
 	}
 }
