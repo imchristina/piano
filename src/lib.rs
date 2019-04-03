@@ -13,6 +13,8 @@ use string::String;
 struct Piano {
 	note: String,
 	init_displacement: Vec<f32>,
+	sample_rate: f32,
+	tuning: f32,
 }
 
 impl Default for Piano {
@@ -27,6 +29,8 @@ impl Default for Piano {
 				velocity: vec![0.0; 500],
 			}, 
 			init_displacement: Vec::new(),
+			sample_rate: 48000.0,
+			tuning: 440.0,
 		}
 	}
 }
@@ -45,7 +49,7 @@ impl Plugin for Piano {
 	}
 	fn init(&mut self) {
 		let mut rng = rand::thread_rng();
-		for _i in 0..500 {
+		for _i in 0..1000 {
 			self.init_displacement.push((rng.gen::<f32>()-0.5)*2.0)
 		}
 	}
@@ -55,10 +59,13 @@ impl Plugin for Piano {
 				Event::Midi(ev) => {
 					match ev.data[0] {
 						128 => { // note off
+							self.note.displacement = vec![0.0;1000];
+							self.note.velocity = vec![0.0;1000];
 						},
 						144 => { // note on
-							self.note.displacement = vec![0.0;500];
+							self.note.displacement = vec![0.0;1000];
 							self.note.velocity = self.init_displacement.clone();
+							self.note.length = ((self.tuning/(48000.0/self.sample_rate))*2_f32.powf(1_f32/12_f32).powf(-(ev.data[1] as f32-33_f32))) as usize;
 						},
 						176 => { // control (pedals)
 							match ev.data[1] {
@@ -79,8 +86,11 @@ impl Plugin for Piano {
 			}
 		}
 	}
+	fn set_sample_rate(&mut self, rate: f32) {
+		self.sample_rate = rate;
+	}
 	fn process(&mut self, buffer: &mut AudioBuffer<f32>) {
-		let output_channels = buffer.output_count();
+		//let output_channels = buffer.output_count();
 		let num_samples = buffer.samples();
 		let (_, output_buffer) = buffer.split();
 
