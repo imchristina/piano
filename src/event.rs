@@ -14,7 +14,7 @@ impl EventManager {
 		}
 	}
 	pub fn note_on(&mut self, key: u8, tuning: &Tuning) {
-		let length = ((tuning.a4_frequency/(48000.0/tuning.sample_rate))*2_f32.powf(1_f32/12_f32).powf(-(key as f32-33_f32))) as usize;
+		let length = ((tuning.a4_frequency/(48000.0/tuning.sample_rate))*2_f32.powf(1_f32/12_f32).powf(-(key as f32-45_f32))) as usize;
 		self.notes.push_front(Note {
 			key,
 			string: String {
