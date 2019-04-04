@@ -5,32 +5,29 @@ use vst::plugin::{Info, Plugin, Category};
 use vst::buffer::AudioBuffer;
 use vst::event::Event;
 use vst::api::Events;
+mod string;
 extern crate rand;
 use self::rand::Rng;
-mod string;
-use string::String;
+mod event;
+use event::{EventManager, Tuning};
 
 struct Piano {
-	note: String,
-	init_displacement: Vec<f32>,
-	sample_rate: f32,
-	tuning: f32,
+	event_manager: EventManager,
+	tuning: Tuning,
 }
 
 impl Default for Piano {
 	fn default() -> Piano {
 		Piano {
-			note: String {
-				length: 500-1,
+			event_manager: EventManager::new(),
+			tuning: Tuning {
 				dispersion: 1.0,
 				termination_length: 2,
 				termination_force: 1.0/3.0,
-				displacement: vec![0.0; 500],
-				velocity: vec![0.0; 500],
-			}, 
-			init_displacement: Vec::new(),
-			sample_rate: 48000.0,
-			tuning: 440.0,
+				initial_displacement: Vec::new(),
+				sample_rate: 48000.0,
+				a4_frequency: 440.0,
+			},
 		}
 	}
 }
@@ -49,8 +46,8 @@ impl Plugin for Piano {
 	}
 	fn init(&mut self) {
 		let mut rng = rand::thread_rng();
-		for _i in 0..1000 {
-			self.init_displacement.push((rng.gen::<f32>()-0.5)*2.0)
+		for _i in 0..10000 { // TODO fixed inital displacement size
+			self.tuning.initial_displacement.push((rng.gen::<f32>()-0.5)*2.0)
 		}
 	}
 	fn process_events(&mut self, events: &Events) {
@@ -59,21 +56,18 @@ impl Plugin for Piano {
 				Event::Midi(ev) => {
 					match ev.data[0] {
 						128 => { // note off
-							self.note.displacement = vec![0.0;1000];
-							self.note.velocity = vec![0.0;1000];
+							self.event_manager.note_off(ev.data[1]);
 						},
 						144 => { // note on
-							self.note.displacement = vec![0.0;1000];
-							self.note.velocity = self.init_displacement.clone();
-							self.note.length = ((self.tuning/(48000.0/self.sample_rate))*2_f32.powf(1_f32/12_f32).powf(-(ev.data[1] as f32-33_f32))) as usize;
+							self.event_manager.note_on(ev.data[1], &self.tuning);
 						},
 						176 => { // control (pedals)
 							match ev.data[1] {
 								64 => { // sustain/damper pedal
 									if ev.data[2] >= 64 { // pedal on
-										
+										self.event_manager.sustain = true;
 									} else { // pedal off
-										
+										self.event_manager.sustain = false;
 									}
 								},
 								_ => (),
@@ -87,7 +81,7 @@ impl Plugin for Piano {
 		}
 	}
 	fn set_sample_rate(&mut self, rate: f32) {
-		self.sample_rate = rate;
+		self.tuning.sample_rate = rate;
 	}
 	fn process(&mut self, buffer: &mut AudioBuffer<f32>) {
 		//let output_channels = buffer.output_count();
@@ -95,9 +89,9 @@ impl Plugin for Piano {
 		let (_, output_buffer) = buffer.split();
 
 		for i in 0..num_samples {
-			let sample = self.note.update();
+			let sample = self.event_manager.update();
 			// Throw away a sample
-			let _ = self.note.update();
+			let _ = self.event_manager.update();
 
 			// Write the same sample to each of the channels (make it mono)
 			for out in output_buffer {
