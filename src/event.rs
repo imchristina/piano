@@ -35,7 +35,7 @@ impl EventManager {
 			}
 		}
 	}
-	pub fn update(&mut self) -> f32 {
+	pub fn strings_update(&mut self) -> f32 {
 		if !self.sustain {
 			self.notes.retain(|note| note.key_down);
 		}
