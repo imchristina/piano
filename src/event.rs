@@ -17,6 +17,7 @@ impl EventManager {
 		let length = ((tuning.a4_frequency/(48000.0/tuning.sample_rate))*2_f32.powf(1_f32/12_f32).powf(-(key as f32-45_f32))) as usize;
 		self.notes.push_front(Note {
 			key,
+			key_down: true,
 			string: String {
 				length,
 				dispersion: tuning.dispersion,
@@ -25,7 +26,7 @@ impl EventManager {
 				displacement: vec![0.0; length+1],
 				velocity: tuning.initial_displacement.clone(), // TODO fixed inital displacement size
 			},
-			key_down: true,
+			sub_sampling: tuning.sub_sampling,
 		})
 	}
 	pub fn note_off(&mut self, key: u8) {
@@ -41,7 +42,10 @@ impl EventManager {
 		}
 		let mut output = 0_f32;
 		for note in &mut self.notes {
-			output += note.string.update()
+			output += note.string.update();
+			for _i in 1..note.sub_sampling {
+				let _ = note.string.update();
+			}
 		}
 		output
 	}
@@ -49,8 +53,9 @@ impl EventManager {
 
 pub struct Note {
 	key: u8,
-	string: String,
 	key_down: bool,
+	string: String,
+	sub_sampling: usize,
 }
 
 pub struct Tuning {
@@ -60,4 +65,5 @@ pub struct Tuning {
 	pub initial_displacement: Vec<f32>,
 	pub sample_rate: f32,
 	pub a4_frequency: f32,
+	pub sub_sampling: usize,
 }

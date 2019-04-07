@@ -28,6 +28,7 @@ impl Default for Piano {
 				initial_displacement: Vec::new(),
 				sample_rate: 48000.0,
 				a4_frequency: 440.0,
+				sub_sampling: 2,
 			},
 			midi_queue: Vec::new(),
 		}
@@ -98,8 +99,6 @@ impl Plugin for Piano {
 			}
 			
 			let sample = self.event_manager.strings_update();
-			// Throw away a sample
-			let _ = self.event_manager.strings_update();
 
 			// Write the same sample to each of the channels (make it mono)
 			for out in output_buffer {
