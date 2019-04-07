@@ -24,7 +24,7 @@ impl Default for Piano {
 			tuning: Tuning {
 				dispersion: 1.0,
 				termination_length: 2,
-				termination_force: 1.0/3.0,
+				termination_force: 0.5,
 				initial_displacement: Vec::new(),
 				sample_rate: 48000.0,
 				a4_frequency: 440.0,
