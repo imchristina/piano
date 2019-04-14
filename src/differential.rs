@@ -1,6 +1,6 @@
 // A very odd way of simulating string motion. It sorta works.
 
-pub struct String {
+pub struct Differential {
 	pub length: usize, // zero indexed
 	pub dispersion: f32,
 	pub termination_length: usize,
@@ -9,7 +9,7 @@ pub struct String {
 	pub velocity: Vec<f32>,
 }
 
-impl String {
+impl Differential {
 	pub fn update(&mut self) -> f32 {
 		for i in 0..self.length { // calculate forces
 			let difference = (self.displacement[i]-self.displacement[i+1])*self.dispersion;

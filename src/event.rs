@@ -1,4 +1,4 @@
-use crate::string::String;
+use crate::karplus_strong::KarplusStrong;
 use std::collections::VecDeque;
 
 pub struct EventManager {
@@ -14,17 +14,17 @@ impl EventManager {
 		}
 	}
 	pub fn note_on(&mut self, key: u8, tuning: &Tuning) {
-		let length = tune(key, tuning.a4_frequency, tuning.sample_rate);
+		let length = tune(key, tuning);
+		let mut delay: VecDeque<f32> = VecDeque::with_capacity(length);
+		for i in 0..length {
+			delay.push_front(tuning.initial_displacement[i]);
+		}
 		self.notes.push_front(Note {
 			key,
 			key_down: true,
-			string: String {
-				length,
-				dispersion: tuning.dispersion,
-				termination_length: tuning.termination_length,
-				termination_force: ((1.0-length as f32/tune(0, tuning.a4_frequency, tuning.sample_rate) as f32)/2.0)*tuning.termination_force,
-				displacement: vec![0.0; length+1],
-				velocity: tuning.initial_displacement.clone(), // TODO fixed inital displacement size
+			string: KarplusStrong {
+				delay,
+				previous_sample: 0_f32,
 			},
 			sub_sampling: tuning.sub_sampling,
 		})
@@ -54,7 +54,7 @@ impl EventManager {
 pub struct Note {
 	key: u8,
 	key_down: bool,
-	string: String,
+	string: KarplusStrong,
 	sub_sampling: usize,
 }
 
@@ -68,6 +68,6 @@ pub struct Tuning {
 	pub sub_sampling: usize,
 }
 
-fn tune(key: u8, a4: f32, sample_rate: f32) -> usize {
-	((a4/(48000.0/sample_rate))*2_f32.powf(1_f32/12_f32).powf(-(key as f32-45_f32))) as usize
+fn tune(key: u8, tuning: &Tuning) -> usize {
+	((tuning.a4_frequency/(48000.0/tuning.sample_rate)*tuning.sub_sampling as f32)*2_f32.powf(1_f32/12_f32).powf(-(key as f32-45_f32))) as usize
 }

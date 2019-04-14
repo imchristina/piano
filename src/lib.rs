@@ -5,7 +5,7 @@ use vst::plugin::{Info, Plugin, Category};
 use vst::buffer::AudioBuffer;
 use vst::event::Event;
 use vst::api::Events;
-mod string;
+mod karplus_strong;
 extern crate rand;
 use self::rand::Rng;
 mod event;
@@ -49,7 +49,7 @@ impl Plugin for Piano {
 	}
 	fn init(&mut self) {
 		let mut rng = rand::thread_rng();
-		for _i in 0..10000 { // TODO fixed inital displacement size
+		for _i in 0..25000 { // TODO fixed inital displacement size
 			self.tuning.initial_displacement.push((rng.gen::<f32>()-0.5)*2.0)
 		}
 	}
