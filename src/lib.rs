@@ -41,7 +41,7 @@ impl Plugin for Piano {
 			unique_id: 0,
 			inputs: 0,
 			outputs: 1,
-			parameters: 0,
+			parameters: 2,
 			category: Category::Synth,
 			..Default::default()
 		}
@@ -109,6 +109,39 @@ impl Plugin for Piano {
 			}
 		}
 		self.midi_queue.clear()
+	}
+	fn get_parameter_name(&self, index: i32) -> String {
+		match index {
+			0 => "Sub Sampling".to_string(),
+			1 => "Dispersion".to_string(),
+			_ => "".to_string()
+		}
+	}
+	fn get_parameter(&self, index: i32) -> f32 {
+		match index {
+			0 => self.tuning.sub_sampling as f32/10_f32,
+			1 => self.tuning.dispersion,
+			_ => 0.0
+		}
+	}
+	fn get_parameter_text(&self, index: i32) -> String {
+		match index {
+			0 => self.tuning.sub_sampling.to_string(),
+			_ => "".to_string()
+		}
+	}
+	fn get_parameter_label(&self, index: i32) -> String {
+		match index {
+			0 => "X".to_string(),
+			_ => "".to_string()
+		}
+	}
+	fn set_parameter(&mut self, index: i32, value: f32) {
+		match index {
+			0 => self.tuning.sub_sampling = (value*10_f32) as usize,
+			1 => self.tuning.dispersion = value,
+			_ => ()
+		}
 	}
 }
 
