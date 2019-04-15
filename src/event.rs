@@ -17,13 +17,13 @@ impl EventManager {
 		let length = tune(key, tuning);
 		let mut delay: VecDeque<f32> = VecDeque::with_capacity(length);
 		for i in 0..length {
-			delay.push_front(tuning.initial_displacement[i]);
+			delay.push_front(tuning.initial_displacement[i]-tuning.displacement_avg[length-1]);
 		}
 		self.notes.push_front(Note {
 			key,
 			key_down: true,
 			string: KarplusStrong {
-				average_weight: 0.25_f32,
+				average_weight: tuning.dispersion,
 				delay,
 				previous_sample: 0_f32,
 			},
@@ -61,9 +61,8 @@ pub struct Note {
 
 pub struct Tuning {
 	pub dispersion: f32,
-	pub termination_length: usize,
-	pub termination_force: f32,
 	pub initial_displacement: Vec<f32>,
+	pub displacement_avg: Vec<f32>,
 	pub sample_rate: f32,
 	pub a4_frequency: f32,
 	pub sub_sampling: usize,

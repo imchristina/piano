@@ -22,10 +22,9 @@ impl Default for Piano {
 		Piano {
 			event_manager: EventManager::new(),
 			tuning: Tuning {
-				dispersion: 1.0,
-				termination_length: 2,
-				termination_force: 0.5,
+				dispersion: 1_f32,
 				initial_displacement: Vec::new(),
+				displacement_avg: Vec::new(),
 				sample_rate: 48000.0,
 				a4_frequency: 440.0,
 				sub_sampling: 2,
@@ -49,8 +48,12 @@ impl Plugin for Piano {
 	}
 	fn init(&mut self) {
 		let mut rng = rand::thread_rng();
-		for _i in 0..25000 { // TODO fixed inital displacement size
-			self.tuning.initial_displacement.push((rng.gen::<f32>()-0.5)*2.0)
+		let mut sum = 0_f32;
+		for i in 1..25000 { // TODO fixed inital displacement size
+			let v = (rng.gen::<f32>()-0.5)*2.0;
+			self.tuning.initial_displacement.push(v);
+			sum += v;
+			self.tuning.displacement_avg.push(sum/i as f32);
 		}
 	}
 	fn process_events(&mut self, events: &Events) {
