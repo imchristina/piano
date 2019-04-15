@@ -23,6 +23,7 @@ impl EventManager {
 			key,
 			key_down: true,
 			string: KarplusStrong {
+				average_weight: 0.25_f32,
 				delay,
 				previous_sample: 0_f32,
 			},

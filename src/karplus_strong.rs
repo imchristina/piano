@@ -1,6 +1,7 @@
 use std::collections::VecDeque;
 
 pub struct KarplusStrong {
+	pub average_weight: f32,
 	pub delay: VecDeque<f32>,
 	pub previous_sample: f32,
 }
@@ -11,7 +12,7 @@ impl KarplusStrong {
 			Some(v) => v,
 			None => 0_f32,
 		};
-		let avg = (sample+self.previous_sample)/2_f32; // TODO bad unwrap, do match instead
+		let avg = (sample+self.previous_sample*self.average_weight)/(1_f32+self.average_weight);
 		self.delay.push_front(avg);
 		self.previous_sample = avg;
 		avg
