@@ -1,4 +1,4 @@
-use crate::karplus_strong::KarplusStrong;
+use crate::hybrid_string::{HybridString, HybridStringConfig};
 use std::collections::VecDeque;
 
 pub struct EventManager {
@@ -13,20 +13,36 @@ impl EventManager {
 			sustain: false,
 		}
 	}
-	pub fn note_on(&mut self, key: u8, tuning: &Tuning) {
-		let length = tune(key, tuning);
-		let mut delay: VecDeque<f32> = VecDeque::with_capacity(length);
-		for i in 0..length {
-			delay.push_front(tuning.initial_displacement[i]-tuning.displacement_avg[length-1]);
+	pub fn note_on(&mut self, key: u8, velocity: u8, tuning: &Tuning) { 
+		let tune = tune(key, tuning);
+		let waveguide_length = if tune > tuning.filter_length {
+			(tune - tuning.filter_length)
+		} else {
+			1
+		};
+		
+		let mut adjusted_displacement: Vec<f32> = Vec::with_capacity(waveguide_length);
+		let mut last_sample = 0_f32;
+		for i in 0..waveguide_length {
+			let mut avg = ((tuning.initial_displacement[i]-tuning.displacement_avg[waveguide_length-1]) + last_sample*tuning.pluck_damping) / (1_f32+tuning.pluck_damping);
+			avg *= velocity as f32/127.0;
+			adjusted_displacement.push(avg);
+			last_sample = avg;
 		}
+		
+		let string_config = HybridStringConfig {
+			waveguide_length,
+			differential_length: tuning.filter_length,
+			dispersion: tuning.dispersion,
+			soft_termination_length: tuning.filter_termination_length,
+			soft_termination_force: tuning.filter_termination_force,
+			initial_displacement: adjusted_displacement,
+		};
+		
 		self.notes.push_front(Note {
 			key,
 			key_down: true,
-			string: KarplusStrong {
-				average_weight: tuning.dispersion,
-				delay,
-				previous_sample: 0_f32,
-			},
+			string: HybridString::new(string_config),
 			sub_sampling: tuning.sub_sampling,
 		})
 	}
@@ -55,17 +71,21 @@ impl EventManager {
 pub struct Note {
 	key: u8,
 	key_down: bool,
-	string: KarplusStrong,
+	string: HybridString,
 	sub_sampling: usize,
 }
 
 pub struct Tuning {
 	pub dispersion: f32,
+	pub filter_length: usize,
+	pub filter_termination_length: usize,
+	pub filter_termination_force: f32,
 	pub initial_displacement: Vec<f32>,
 	pub displacement_avg: Vec<f32>,
 	pub sample_rate: f32,
 	pub a4_frequency: f32,
 	pub sub_sampling: usize,
+	pub pluck_damping: f32,
 }
 
 fn tune(key: u8, tuning: &Tuning) -> usize {
